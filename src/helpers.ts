@@ -7,6 +7,7 @@ import {
     PoolDictionary,
     Swap,
     DisabledOptions,
+    NewPath,
 } from './types';
 import {
     BONE,
@@ -43,39 +44,63 @@ export function getLimitAmountSwapPath(
         let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
         let poolPairDataSwap1 = poolPairData[id];
         return getLimitAmountSwap(poolPairDataSwap1.poolPairData, swapType);
-    } else if (swaps.length == 2) {
-        let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
-        let poolPairDataSwap1 = poolPairData[id];
-        id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
-        let poolPairDataSwap2 = poolPairData[id];
+    } else if (swaps.length >= 2) {
+        // let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
+        // let poolPairDataSwap1 = poolPairData[id];
+        // id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
+        // let poolPairDataSwap2 = poolPairData[id];
 
+        let newSwaps;
         if (swapType === 'swapExactIn') {
-            return BigNumber.min(
-                // The limit is either set by limit_IN of poolPairData 1 or indirectly by limit_IN of poolPairData 2
-                getLimitAmountSwap(poolPairDataSwap1.poolPairData, swapType),
-                bmul(
-                    getLimitAmountSwap(
-                        poolPairDataSwap2.poolPairData,
-                        swapType
-                    ),
-                    poolPairDataSwap1.sp
-                ) // we need to multiply the limit_IN of
-                // poolPairData 2 by the spotPrice of poolPairData 1 to get the equivalent in token IN
-            );
+            newSwaps = swaps;
         } else {
-            return BigNumber.min(
-                // The limit is either set by limit_OUT of poolPairData 2 or indirectly by limit_OUT of poolPairData 1
-                getLimitAmountSwap(poolPairDataSwap2.poolPairData, swapType),
-                bdiv(
-                    getLimitAmountSwap(
-                        poolPairDataSwap1.poolPairData,
-                        swapType
-                    ),
-                    poolPairDataSwap2.sp
-                ) // we need to divide the limit_OUT of
-                // poolPairData 1 by the spotPrice of poolPairData 2 to get the equivalent in token OUT
-            );
+            newSwaps = swaps.reverse();
         }
+        let tmpLimitAmount;
+        newSwaps.forEach((swap, index) => {
+            let id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+            let poolPairDataSwap = poolPairData[id];
+            if (index == 0) {
+                tmpLimitAmount = getLimitAmountSwap(
+                    poolPairDataSwap.poolPairData,
+                    swapType
+                );
+            } else {
+                tmpLimitAmount = BigNumber.min(
+                    tmpLimitAmount,
+                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
+                );
+            }
+        });
+        return tmpLimitAmount;
+
+        // if (swapType === 'swapExactIn') {
+        //     return BigNumber.min(
+        //         // The limit is either set by limit_IN of poolPairData 1 or indirectly by limit_IN of poolPairData 2
+        //         getLimitAmountSwap(poolPairDataSwap1.poolPairData, swapType),
+        //         bmul(
+        //             getLimitAmountSwap(
+        //                 poolPairDataSwap2.poolPairData,
+        //                 swapType
+        //             ),
+        //             poolPairDataSwap1.sp
+        //         ) // we need to multiply the limit_IN of
+        //         // poolPairData 2 by the spotPrice of poolPairData 1 to get the equivalent in token IN
+        //     );
+        // } else {
+        //     return BigNumber.min(
+        //         // The limit is either set by limit_OUT of poolPairData 2 or indirectly by limit_OUT of poolPairData 1
+        //         getLimitAmountSwap(poolPairDataSwap2.poolPairData, swapType),
+        //         bdiv(
+        //             getLimitAmountSwap(
+        //                 poolPairDataSwap1.poolPairData,
+        //                 swapType
+        //             ),
+        //             poolPairDataSwap2.sp
+        //         ) // we need to divide the limit_OUT of
+        //         // poolPairData 1 by the spotPrice of poolPairData 2 to get the equivalent in token OUT
+        //     );
+        // }
     } else {
         throw new Error('Path with more than 2 swaps not supported');
     }
@@ -91,13 +116,24 @@ export function getSpotPricePath(
         let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
         let poolPairDataSwap1 = poolPairData[id];
         return poolPairDataSwap1.sp;
-    } else if (swaps.length == 2) {
-        let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
-        let poolPairDataSwap1 = poolPairData[id];
-        id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
-        let poolPairDataSwap2 = poolPairData[id];
-
-        return bmul(poolPairDataSwap1.sp, poolPairDataSwap2.sp);
+    } else if (swaps.length >= 2) {
+        // let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
+        // let poolPairDataSwap1 = poolPairData[id];
+        // id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
+        // let poolPairDataSwap2 = poolPairData[id];
+        //
+        // return bmul(poolPairDataSwap1.sp, poolPairDataSwap2.sp);
+        //
+        let tmp;
+        swaps.forEach((swap, i) => {
+            const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+            if (i == 0) {
+                tmp = poolPairData[id].sp;
+            } else {
+                tmp = bmul(tmp, poolPairData[id].sp);
+            }
+        });
+        return tmp;
     } else {
         throw new Error('Path with more than 2 swaps not supported');
     }
@@ -128,63 +164,131 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
             poolPairDataSwap1,
             swapType
         );
-    } else if (swaps.length == 2) {
-        let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
-        let p1: PoolPairData = poolPairData[id].poolPairData;
+    } else if (swaps.length >= 2) {
+        // let id = `${swaps[0].pool}${swaps[0].tokenIn}${swaps[0].tokenOut}`;
+        // let p1: PoolPairData = poolPairData[id].poolPairData;
+        //
+        // id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
+        // let p2: PoolPairData = poolPairData[id].poolPairData;
 
-        id = `${swaps[1].pool}${swaps[1].tokenIn}${swaps[1].tokenOut}`;
-        let p2: PoolPairData = poolPairData[id].poolPairData;
+        const totalBalanceIn = Object.keys(poolPairData)
+            .map(key => poolPairData[key].poolPairData.balanceIn)
+            .reduce((previousValue, currentValue) => {
+                return previousValue.plus(currentValue);
+            });
 
-        if (
-            p1.balanceIn.isEqualTo(bnum(0)) ||
-            p2.balanceIn.isEqualTo(bnum(0))
-        ) {
+        console.log('totalBalanceIn', JSON.stringify(totalBalanceIn));
+
+        if (totalBalanceIn.isEqualTo(bnum(0))) {
             return bnum(0);
         } else {
-            // Since the numerator is the same for both 'swapExactIn' and 'swapExactOut' we do this first
-            // See formulas on https://one.wolframcloud.com/env/fernando.martinel/SOR_multihop_analysis.nb
-            let numerator1 = bmul(
-                bmul(
-                    bmul(BONE.minus(p1.swapFee), BONE.minus(p2.swapFee)), // In mathematica both terms are the negative (which compensates)
-                    p1.balanceOut
-                ),
-                bmul(p1.weightIn, p2.weightIn)
-            );
+            let numerator;
+            swaps.forEach((swap, i) => {
+                if (i !== 0) {
+                    const preSwap = swaps[i - 1];
+                    const preId = `${preSwap.pool}${preSwap.tokenIn}${preSwap.tokenOut}`;
+                    const p1 = poolPairData[preId].poolPairData;
+                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                    const p2 = poolPairData[id].poolPairData;
+                    let numerator1 = bmul(
+                        bmul(
+                            bmul(
+                                BONE.minus(p1.swapFee),
+                                BONE.minus(p2.swapFee)
+                            ), // In mathematica both terms are the negative (which compensates)
+                            p1.balanceOut
+                        ),
+                        bmul(p1.weightIn, p2.weightIn)
+                    );
 
-            let numerator2 = bmul(
-                bmul(
-                    p1.balanceOut.plus(p2.balanceIn),
-                    BONE.minus(p1.swapFee) // In mathematica this is the negative but we add (instead of subtracting) numerator2 to compensate
-                ),
-                bmul(p1.weightIn, p2.weightOut)
-            );
+                    let numerator2 = bmul(
+                        bmul(
+                            p1.balanceOut.plus(p2.balanceIn),
+                            BONE.minus(p1.swapFee) // In mathematica this is the negative but we add (instead of subtracting) numerator2 to compensate
+                        ),
+                        bmul(p1.weightIn, p2.weightOut)
+                    );
 
-            let numerator3 = bmul(
-                p2.balanceIn,
-                bmul(p1.weightOut, p2.weightOut)
-            );
-
-            let numerator = numerator1.plus(numerator2).plus(numerator3);
-
-            // The denominator is different for 'swapExactIn' and 'swapExactOut'
+                    let numerator3 = bmul(
+                        p2.balanceIn,
+                        bmul(p1.weightOut, p2.weightOut)
+                    );
+                    numerator = numerator1.plus(numerator2).plus(numerator3);
+                }
+            });
+            let slippage;
             if (swapType === 'swapExactIn') {
-                let denominator1 = bmul(p1.balanceIn, p1.weightOut);
-                let denominator2 = bmul(p2.balanceIn, p2.weightOut);
-
-                return bdiv(bdiv(numerator, denominator1), denominator2);
+                swaps.forEach((swap, i) => {
+                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                    const p = poolPairData[id].poolPairData;
+                    let denominator1 = bmul(p.balanceIn, p.weightOut);
+                    slippage = bdiv(numerator, denominator1);
+                });
+                return slippage;
             } else {
-                let denominator1 = bmul(
-                    BONE.minus(p1.swapFee),
-                    bmul(p1.balanceOut, p1.weightIn)
-                );
-                let denominator2 = bmul(
-                    BONE.minus(p2.swapFee),
-                    bmul(p2.balanceOut, p2.weightIn)
-                );
-
-                return bdiv(bdiv(numerator, denominator1), denominator2);
+                swaps.forEach((swap, i) => {
+                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                    const p = poolPairData[id].poolPairData;
+                    let denominator1 = bmul(
+                        BONE.minus(p.swapFee),
+                        bmul(p.balanceOut, p.weightIn)
+                    );
+                    slippage = bdiv(numerator, denominator1);
+                });
+                return slippage;
             }
         }
+
+        // if (
+        //     p1.balanceIn.isEqualTo(bnum(0)) ||
+        //     p2.balanceIn.isEqualTo(bnum(0))
+        // ) {
+        //     return bnum(0);
+        // } else {
+        //     // Since the numerator is the same for both 'swapExactIn' and 'swapExactOut' we do this first
+        //     // See formulas on https://one.wolframcloud.com/env/fernando.martinel/SOR_multihop_analysis.nb
+        //     let numerator1 = bmul(
+        //         bmul(
+        //             bmul(BONE.minus(p1.swapFee), BONE.minus(p2.swapFee)), // In mathematica both terms are the negative (which compensates)
+        //             p1.balanceOut
+        //         ),
+        //         bmul(p1.weightIn, p2.weightIn)
+        //     );
+        //
+        //     let numerator2 = bmul(
+        //         bmul(
+        //             p1.balanceOut.plus(p2.balanceIn),
+        //             BONE.minus(p1.swapFee) // In mathematica this is the negative but we add (instead of subtracting) numerator2 to compensate
+        //         ),
+        //         bmul(p1.weightIn, p2.weightOut)
+        //     );
+        //
+        //     let numerator3 = bmul(
+        //         p2.balanceIn,
+        //         bmul(p1.weightOut, p2.weightOut)
+        //     );
+        //
+        //     let numerator = numerator1.plus(numerator2).plus(numerator3);
+        //
+        //     // The denominator is different for 'swapExactIn' and 'swapExactOut'
+        //     if (swapType === 'swapExactIn') {
+        //         let denominator1 = bmul(p1.balanceIn, p1.weightOut);
+        //         let denominator2 = bmul(p2.balanceIn, p2.weightOut);
+        //
+        //         return bdiv(bdiv(numerator, denominator1), denominator2);
+        //     } else {
+        //         let denominator1 = bmul(
+        //             BONE.minus(p1.swapFee),
+        //             bmul(p1.balanceOut, p1.weightIn)
+        //         );
+        //         let denominator2 = bmul(
+        //             BONE.minus(p2.swapFee),
+        //             bmul(p2.balanceOut, p2.weightIn)
+        //         );
+        //
+        //         return bdiv(bdiv(numerator, denominator1), denominator2);
+        //     }
+        // }
     } else {
         throw new Error('Path with more than 2 swaps not supported');
     }
@@ -232,53 +336,85 @@ export function getReturnAmountSwapPath(
             swap1.tokenOut
         );
         return getReturnAmountSwap(pools, poolPairDataSwap1, swapType, amount);
-    } else if (swaps.length == 2) {
-        let swap1 = swaps[0];
-        let poolSwap1 = pools[swap1.pool];
-        let poolPairDataSwap1 = parsePoolPairData(
-            poolSwap1,
-            swap1.tokenIn,
-            swap1.tokenOut
-        );
+    } else if (swaps.length >= 2) {
+        // let swap1 = swaps[0];
+        // let poolSwap1 = pools[swap1.pool];
+        // let poolPairDataSwap1 = parsePoolPairData(
+        //     poolSwap1,
+        //     swap1.tokenIn,
+        //     swap1.tokenOut
+        // );
 
-        let swap2 = swaps[1];
-        let poolSwap2 = pools[swap2.pool];
-        let poolPairDataSwap2 = parsePoolPairData(
-            poolSwap2,
-            swap2.tokenIn,
-            swap2.tokenOut
-        );
+        // let swap2 = swaps[1];
+        // let poolSwap2 = pools[swap2.pool];
+        // let poolPairDataSwap2 = parsePoolPairData(
+        //     poolSwap2,
+        //     swap2.tokenIn,
+        //     swap2.tokenOut
+        // );
 
+        let tmpReturnAmount;
+        let newSwaps;
         if (swapType === 'swapExactIn') {
-            // The outputAmount is number of tokenOut we receive from the second poolPairData
-            let returnAmountSwap1 = getReturnAmountSwap(
-                pools,
-                poolPairDataSwap1,
-                swapType,
-                amount
-            );
-
-            return getReturnAmountSwap(
-                pools,
-                poolPairDataSwap2,
-                swapType,
-                returnAmountSwap1
-            );
+            newSwaps = swaps;
         } else {
-            // The outputAmount is number of tokenIn we send to the first poolPairData
-            let returnAmountSwap2 = getReturnAmountSwap(
-                pools,
-                poolPairDataSwap2,
-                swapType,
-                amount
-            );
-            return getReturnAmountSwap(
-                pools,
-                poolPairDataSwap1,
-                swapType,
-                returnAmountSwap2
-            );
+            newSwaps = swaps.reverse();
         }
+        newSwaps.forEach((swap, index) => {
+            const poolSwap = pools[swap.pool];
+            let poolPairDataSwap = parsePoolPairData(
+                poolSwap,
+                swap.tokenIn,
+                swap.tokenOut
+            );
+            if (index == 0) {
+                tmpReturnAmount = getReturnAmountSwap(
+                    pools,
+                    poolPairDataSwap,
+                    swapType,
+                    amount
+                );
+            } else {
+                tmpReturnAmount = getReturnAmountSwap(
+                    pools,
+                    poolPairDataSwap,
+                    swapType,
+                    tmpReturnAmount
+                );
+            }
+        });
+        return tmpReturnAmount;
+
+        // if (swapType === 'swapExactIn') {
+        //     // The outputAmount is number of tokenOut we receive from the second poolPairData
+        //     let returnAmountSwap1 = getReturnAmountSwap(
+        //         pools,
+        //         poolPairDataSwap1,
+        //         swapType,
+        //         amount
+        //     );
+        //
+        //     return getReturnAmountSwap(
+        //         pools,
+        //         poolPairDataSwap2,
+        //         swapType,
+        //         returnAmountSwap1
+        //     );
+        // } else {
+        //     // The outputAmount is number of tokenIn we send to the first poolPairData
+        //     let returnAmountSwap2 = getReturnAmountSwap(
+        //         pools,
+        //         poolPairDataSwap2,
+        //         swapType,
+        //         amount
+        //     );
+        //     return getReturnAmountSwap(
+        //         pools,
+        //         poolPairDataSwap1,
+        //         swapType,
+        //         returnAmountSwap2
+        //     );
+        // }
     } else {
         throw new Error('Path with more than 2 swaps not supported');
     }
@@ -301,6 +437,8 @@ export function getReturnAmountSwap(
     } = poolPairData;
     let returnAmount: BigNumber;
 
+    console.log('get return begin:', balanceIn.toString());
+
     if (swapType === 'swapExactIn') {
         if (balanceIn.isEqualTo(bnum(0))) {
             return bnum(0);
@@ -312,6 +450,12 @@ export function getReturnAmountSwap(
                 weightOut,
                 amount,
                 swapFee
+            );
+            console.log(
+                'getReturn:',
+                JSON.stringify(poolPairData),
+                amount.toString(),
+                returnAmount.toString()
             );
             // Update balances of tokenIn and tokenOut
             pools[poolPairData.id] = updateTokenBalanceForPool(

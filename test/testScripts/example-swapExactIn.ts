@@ -1,25 +1,39 @@
 // Example showing full swapExactIn - run using: $ ts-node ./test/testScripts/example-swapExactIn.ts
+import { SOR } from '../../src';
+
 require('dotenv').config();
 const sor = require('../../src');
 const BigNumber = require('bignumber.js');
-import { JsonRpcProvider } from '@ethersproject/providers';
+import { JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
+import { PoolDictionary } from '../../src/types';
+
+// const provider = new JsonRpcProvider(
+//     `https://mainnet.infura.io/v3/${process.env.INFURA}` // If running this example make sure you have a .env file saved in root DIR with INFURA=your_key
+// );
 
 const provider = new JsonRpcProvider(
-    `https://mainnet.infura.io/v3/${process.env.INFURA}` // If running this example make sure you have a .env file saved in root DIR with INFURA=your_key
+    'https://rpc-mumbai.maticvigil.com/v1/c1947560c824b65dcc8774279fe1225b3c835d35'
 );
-const DAI = '0x6B175474E89094C44Da98b954EedeAC495271d0F'; // DAI Address
-const USDC = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'; // USDC Address
-const amountIn = new BigNumber('1000000'); // 1 USDC, Always pay attention to Token Decimals. i.e. In this case USDC has 6 decimals.
-const tokenIn = USDC;
-const tokenOut = DAI;
+// const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'; // WETH Address
+// const USDC = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D'; // USDC Address
+// const USDC = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d'; // MBMU Address
+
+const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
+const USDC = '0x40e5e70826ecf94325fffdea0c61aaae3eda46f6';
+
+const amountIn = new BigNumber('1000000000'); // 1 USDC, Always pay attention to Token Decimals. i.e. In this case USDC has 6 decimals.
+const tokenIn = DAI;
+const tokenOut = USDC;
 const swapType = 'swapExactIn';
-const noPools = 4; // This determines how many pools the SOR will use to swap.
+const noPools = 6; // This determines how many pools the SOR will use to swap.
 const gasPrice = new BigNumber('30000000000'); // You can set gas price to whatever the current price is.
 const swapCost = new BigNumber('100000'); // A pool swap costs approx 100000 gas
 // URL for pools data
-const poolsUrl = `https://ipfs.fleek.co/ipns/balancer-team-bucket.storage.fleek.co/balancer-exchange-kovan/pools`;
+// const poolsUrl = `https://ipfs.fleek.co/ipns/balancer-team-bucket.storage.fleek.co/balancer-exchange-kovan/pools`;
+const poolsUrl = 'http://158.247.224.97:18000/subgraphs/name/bootstrapnft';
 
 async function swapExactIn() {
+    console.log('Swapping...');
     // This calculates the cost in output token (output token is tokenOut for swapExactIn and
     // tokenIn for a swapExactOut) for each additional pool added to the final SOR swap result.
     // This is used as an input to SOR to allow it to make gas efficient recommendations, i.e.
@@ -36,14 +50,12 @@ async function swapExactIn() {
     // Fetch all pools information
     const poolsHelper = new sor.POOLS();
     console.log('Fetching Pools...');
-    let allPoolsNonZeroBalances = await poolsHelper.getAllPublicSwapPools(
-        poolsUrl
-    );
+    let allPoolsNonZeroBalances = poolsHelper.getAllPublicSwapPools(poolsUrl);
 
     console.log(`Retrieving Onchain Balances...`);
     allPoolsNonZeroBalances = await sor.getAllPoolDataOnChain(
         allPoolsNonZeroBalances,
-        '0x514053acec7177e277b947b1ebb5c08ab4c4580e', // Address of Multicall contract
+        '0xAFdbA29203159a16b38Be3e42Bb6bbB0C39a73Ba', // Address of Multicall contract
         provider
     );
 
@@ -61,31 +73,54 @@ async function swapExactIn() {
         tokenOut.toLowerCase(),
         noPools
     );
+    console.log('filtering pools...', directPools);
 
-    // For each hopToken, find the most liquid pool for the first and the second hops
-    let mostLiquidPoolsFirstHop, mostLiquidPoolsSecondHop;
-    [
-        mostLiquidPoolsFirstHop,
-        mostLiquidPoolsSecondHop,
-    ] = sor.sortPoolsMostLiquid(
+    const smartRouter = new SOR(provider, gasPrice, noPools, 80001, poolsUrl);
+
+    const path = smartRouter.routeProposer.getCandidatePaths(
         tokenIn,
         tokenOut,
-        hopTokens,
-        poolsTokenIn,
-        poolsTokenOut
+        'swapExactIn',
+        allPoolsNonZeroBalances.pools,
+        {
+            gasPrice,
+            swapGas: new BigNumber('35000'),
+            maxPools: noPools,
+            timestamp: Math.floor(Date.now() / 1000),
+            forceRefresh: false,
+        }
     );
+
+    console.log('new path', JSON.stringify(path));
+
+    // For each hopToken, find the most liquid pool for the first and the second hops
+    // let mostLiquidPoolsFirstHop, mostLiquidPoolsSecondHop;
+    // [
+    //     mostLiquidPoolsFirstHop,
+    //     mostLiquidPoolsSecondHop,
+    // ] = sor.sortPoolsMostLiquid(
+    //     tokenIn,
+    //     tokenOut,
+    //     hopTokens,
+    //     poolsTokenIn,
+    //     poolsTokenOut
+    // );
+    //
+    // console.log("sorting pools...", JSON.stringify(mostLiquidPoolsFirstHop), JSON.stringify(mostLiquidPoolsSecondHop));
 
     // Finds the possible paths to make the swap, each path can be a direct swap
     // or a multihop composed of 2 swaps
-    let pools, pathData;
-    [pools, pathData] = sor.parsePoolData(
-        directPools,
-        tokenIn.toLowerCase(),
-        tokenOut.toLowerCase(),
-        mostLiquidPoolsFirstHop,
-        mostLiquidPoolsSecondHop,
-        hopTokens
-    );
+    // let pools, pathData;
+    // [pools, pathData] = sor.parsePoolData(
+    //     directPools,
+    //     tokenIn.toLowerCase(),
+    //     tokenOut.toLowerCase(),
+    //     mostLiquidPoolsFirstHop,
+    //     mostLiquidPoolsSecondHop,
+    //     hopTokens
+    // );
+    //
+    // console.log("parsing pools...", pools, JSON.stringify(pathData));
 
     // For each path, find its spot price, slippage and limit amount
     // The spot price of a multihop is simply the multiplication of the spot prices of each
@@ -94,7 +129,19 @@ async function swapExactIn() {
     // balance of tokenIn (for swapExactIn) and 33.33% of the pool balance of tokenOut (for
     // swapExactOut)
     // 'paths' are ordered by ascending spot price
-    let paths = sor.processPaths(pathData, pools, swapType);
+    // let paths = sor.processPaths(pathData, pools, swapType);
+    //
+    // console.log("processing paths...", JSON.stringify(paths));
+
+    const newPool: PoolDictionary = {};
+    path.forEach(path => {
+        path.pools.forEach(pool => {
+            newPool[pool.id] = pool;
+        });
+    });
+    let newPaths = sor.processPaths(path, newPool, swapType);
+
+    console.log('new processing paths...', JSON.stringify(newPaths));
 
     // epsOfInterest stores a list of all relevant prices: these are either
     // 1) Spot prices of a path
@@ -104,28 +151,65 @@ async function swapExactIn() {
     //   - 'bestPathsIds' a list of the id of the best paths to get to this price and
     //   - 'amounts' a list of how much each path would need to trade to get to that price of
     //     interest
-    let epsOfInterest = sor.processEpsOfInterestMultiHop(
-        paths,
+    // let epsOfInterest = sor.processEpsOfInterestMultiHop(
+    //     paths,
+    //     swapType,
+    //     noPools
+    // );
+
+    let newEpsOfInterest = sor.processEpsOfInterestMultiHop(
+        newPaths,
         swapType,
         noPools
+    );
+    console.log(
+        'processing eps of interest...',
+        JSON.stringify(newEpsOfInterest)
     );
 
     // Returns 'swaps' which is the optimal list of swaps to make and
     // 'totalReturnWei' which is the total amount of tokenOut (eg. DAI) will be returned
-    let swaps, totalReturnWei;
-    [swaps, totalReturnWei] = sor.smartOrderRouterMultiHopEpsOfInterest(
-        pools,
-        paths,
+    // let swaps, totalReturnWei;
+    // [swaps, totalReturnWei] = sor.smartOrderRouterMultiHopEpsOfInterest(
+    //     pools,
+    //     paths,
+    //     swapType,
+    //     amountIn,
+    //     noPools,
+    //     costOutputToken,
+    //     epsOfInterest
+    // );
+
+    console.log('====new====');
+
+    const [
+        newSwaps,
+        newTotalReturnWei,
+    ] = sor.smartOrderRouterMultiHopEpsOfInterest(
+        newPool,
+        newPaths,
         swapType,
         amountIn,
         noPools,
         costOutputToken,
-        epsOfInterest
+        newEpsOfInterest
     );
+    //
+    // console.log(`Total DAI Return: ${totalReturnWei.toString()}`);
+    // console.log(`Swaps: `);
+    // console.log(swaps);
 
-    console.log(`Total DAI Return: ${totalReturnWei.toString()}`);
-    console.log(`Swaps: `);
-    console.log(swaps);
+    console.log(`NEw Total DAI Return: ${newTotalReturnWei.toString()}`);
+    console.log(`New Swaps: `);
+    console.log(newSwaps);
+
+    // console.log("eps of interest", JSON.stringify(epsOfInterest));
+    console.log('============');
+    console.log('new pool:', JSON.stringify(newPool));
+    console.log('=================');
+    console.log('new path:', JSON.stringify(newPaths));
+    console.log('=================');
+    console.log('new eps of interest:', JSON.stringify(newEpsOfInterest));
 }
 
 swapExactIn();

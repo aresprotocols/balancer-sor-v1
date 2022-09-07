@@ -52,34 +52,42 @@ export function processPaths(
                 let sp = getSpotPrice(poolPairDataSwap1);
                 poolPairData[id] = { poolPairData: poolPairDataSwap1, sp: sp };
             }
-        } else if (swaps.length == 2) {
-            let swap1: Swap = swaps[0];
-            let id = `${swap1.pool}${swap1.tokenIn}${swap1.tokenOut}`;
-            if (poolPairData[id] === undefined) {
-                let poolSwap1: Pool = pools[swap1.pool];
-                let poolPairDataSwap1: PoolPairData = parsePoolPairData(
-                    poolSwap1,
-                    swap1.tokenIn,
-                    swap1.tokenOut
-                );
+        } else if (swaps.length >= 2) {
+            swaps.forEach(swap => {
+                let id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                if (poolPairData[id] === undefined) {
+                    try {
+                        let poolSwap1: Pool = pools[swap.pool];
+                        let poolPairDataSwap1: PoolPairData = parsePoolPairData(
+                            poolSwap1,
+                            swap.tokenIn,
+                            swap.tokenOut
+                        );
 
-                let sp = getSpotPrice(poolPairDataSwap1);
-                poolPairData[id] = { poolPairData: poolPairDataSwap1, sp: sp };
-            }
+                        let sp = getSpotPrice(poolPairDataSwap1);
+                        poolPairData[id] = {
+                            poolPairData: poolPairDataSwap1,
+                            sp: sp,
+                        };
+                    } catch (e) {
+                        console.log('parsePoolPairData', e);
+                    }
+                }
+            });
 
-            let swap2: Swap = swaps[1];
-            id = `${swap2.pool}${swap2.tokenIn}${swap2.tokenOut}`;
-            if (poolPairData[id] === undefined) {
-                let poolSwap2: Pool = pools[swap2.pool];
-                let poolPairDataSwap2: PoolPairData = parsePoolPairData(
-                    poolSwap2,
-                    swap2.tokenIn,
-                    swap2.tokenOut
-                );
-
-                let sp = getSpotPrice(poolPairDataSwap2);
-                poolPairData[id] = { poolPairData: poolPairDataSwap2, sp: sp };
-            }
+            // let swap2: Swap = swaps[1];
+            // id = `${swap2.pool}${swap2.tokenIn}${swap2.tokenOut}`;
+            // if (poolPairData[id] === undefined) {
+            //     let poolSwap2: Pool = pools[swap2.pool];
+            //     let poolPairDataSwap2: PoolPairData = parsePoolPairData(
+            //         poolSwap2,
+            //         swap2.tokenIn,
+            //         swap2.tokenOut
+            //     );
+            //
+            //     let sp = getSpotPrice(poolPairDataSwap2);
+            //     poolPairData[id] = { poolPairData: poolPairDataSwap2, sp: sp };
+            // }
         }
 
         path.spotPrice = getSpotPricePath(pools, path, poolPairData);
@@ -97,9 +105,11 @@ export function processPaths(
         );
     });
 
-    let sortedPaths = paths.sort((a, b) => {
-        return a.spotPrice.minus(b.spotPrice).toNumber();
-    });
+    let sortedPaths = paths
+        .filter(p => p.spotPrice)
+        .sort((a, b) => {
+            return a.spotPrice.minus(b.spotPrice).toNumber();
+        });
 
     return sortedPaths;
 }
@@ -187,6 +197,7 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
     // one path only (b=1). Then increase the number of pools as long as
     // improvementCondition is true (see more information below)
 
+    // 计算最优路径和最多可兑换的金额
     for (let b = 1; b <= bmin; b++) {
         totalReturn = 0;
 
@@ -208,6 +219,11 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
             // we found a solution to trade, now all we need to do is interpolate
             // between swapAmountsPriceBefore and swapAmountsPriceAfter
             if (totalInputAmountAfter.isGreaterThan(totalSwapAmount)) {
+                console.log(
+                    'total swap amount:',
+                    totalInputAmountAfter.toString(),
+                    totalSwapAmount.toString()
+                );
                 pathIds = priceBefore.bestPathsIds.slice(0, b);
                 swapAmountsPriceBefore = priceBefore.amounts.slice(0, b);
                 swapAmountsPriceAfter = pricesOfInterest[i].amounts.slice(0, b);
@@ -216,6 +232,13 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
                     swapAmountsPriceBefore,
                     swapAmountsPriceAfter,
                     totalSwapAmount
+                );
+
+                console.log(
+                    'total swap:',
+                    JSON.stringify(pathIds),
+                    JSON.stringify(swapAmountsPriceBefore),
+                    JSON.stringify(swapAmountsPriceAfter)
                 );
 
                 // We found a priceOfInterest that can yield enough amount for trade
@@ -241,6 +264,8 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
             pathIds,
             swapAmounts
         );
+
+        console.log('tot return:', totalReturn.toString());
 
         // Calculates the number of pools in all the paths to include the gas costs
         let totalNumberOfPools = 0;
@@ -292,6 +317,10 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
         }
     }
 
+    console.log('best swap amount:', JSON.stringify(bestSwapAmounts));
+    console.log('bestPathIds:', JSON.stringify(bestPathIds));
+    console.log('swapAmounts:', JSON.stringify(swapAmounts));
+
     //// Prepare swap data from paths
     let swaps: Swap[][] = [];
     let totalSwapAmountWithRoundingErrors: BigNumber = new BigNumber(0);
@@ -335,65 +364,142 @@ export const smartOrderRouterMultiHopEpsOfInterest = (
             swaps.push([swap]);
         } else {
             // Multi-hop:
+            let tmpSwap = [];
+            for (let j = 1; j < path.swaps.length; j++) {
+                const preSwap = path.swaps[j - 1];
+                let prePoolSwap = pools[preSwap.pool];
+                let prePoolPairDataSwap = parsePoolPairData(
+                    prePoolSwap,
+                    preSwap.tokenIn,
+                    preSwap.tokenOut
+                );
 
-            let swap1 = path.swaps[0];
-            let poolSwap1 = pools[swap1.pool];
-            let poolPairDataSwap1 = parsePoolPairData(
-                poolSwap1,
-                swap1.tokenIn,
-                swap1.tokenOut
-            );
+                let curSwap = path.swaps[j];
+                let poolSwap = pools[curSwap.pool];
+                let poolPairDataSwap = parsePoolPairData(
+                    poolSwap,
+                    curSwap.tokenIn,
+                    curSwap.tokenOut
+                );
+                let tmpSwapAmount = swapAmount;
+                if (j !== 1) {
+                    tmpSwapAmount = bnum(
+                        tmpSwap[tmpSwap.length - 1].swapAmount
+                    );
+                }
 
-            let swap2 = path.swaps[1];
-            let poolSwap2 = pools[swap2.pool];
-            let poolPairDataSwap2 = parsePoolPairData(
-                poolSwap2,
-                swap2.tokenIn,
-                swap2.tokenOut
-            );
+                console.log(
+                    'pre pool swap pair:',
+                    j,
+                    JSON.stringify(prePoolPairDataSwap),
+                    tmpSwapAmount.toString()
+                );
 
-            // Add swap from first pool
-            let swap1hop: Swap = {
-                pool: path.swaps[0].pool,
-                tokenIn: path.swaps[0].tokenIn,
-                tokenOut: path.swaps[0].tokenOut,
-                swapAmount:
-                    swapType === 'swapExactIn'
-                        ? swapAmount.toString()
-                        : getReturnAmountSwap(
-                              pools,
-                              poolPairDataSwap2,
-                              swapType,
-                              swapAmount
-                          ).toString(),
-                limitReturnAmount:
-                    swapType === 'swapExactIn'
-                        ? minAmountOut.toString()
-                        : maxAmountIn.toString(),
-                maxPrice: maxPrice.toString(),
-            };
+                const swap1hop: Swap = {
+                    pool: preSwap.pool,
+                    tokenIn: preSwap.tokenIn,
+                    tokenOut: preSwap.tokenOut,
+                    swapAmount:
+                        swapType === 'swapExactIn'
+                            ? tmpSwapAmount.toString()
+                            : getReturnAmountSwap(
+                                  pools,
+                                  poolPairDataSwap,
+                                  swapType,
+                                  tmpSwapAmount
+                              ).toString(),
+                    limitReturnAmount:
+                        swapType === 'swapExactIn'
+                            ? minAmountOut.toString()
+                            : maxAmountIn.toString(),
+                    maxPrice: maxPrice.toString(),
+                };
 
-            // Add swap from second pool
-            let swap2hop: Swap = {
-                pool: path.swaps[1].pool,
-                tokenIn: path.swaps[1].tokenIn,
-                tokenOut: path.swaps[1].tokenOut,
-                swapAmount:
-                    swapType === 'swapExactIn'
-                        ? getReturnAmountSwap(
-                              pools,
-                              poolPairDataSwap1,
-                              swapType,
-                              swapAmount
-                          ).toString()
-                        : swapAmount.toString(),
-                limitReturnAmount:
-                    swapType === 'swapExactIn'
-                        ? minAmountOut.toString()
-                        : maxAmountIn.toString(),
-                maxPrice: maxPrice.toString(),
-            };
-            swaps.push([swap1hop, swap2hop]);
+                let swap2hop: Swap = {
+                    pool: curSwap.pool,
+                    tokenIn: curSwap.tokenIn,
+                    tokenOut: curSwap.tokenOut,
+                    swapAmount:
+                        swapType === 'swapExactIn'
+                            ? getReturnAmountSwap(
+                                  pools,
+                                  prePoolPairDataSwap,
+                                  swapType,
+                                  tmpSwapAmount
+                              ).toString()
+                            : tmpSwapAmount.toString(),
+                    limitReturnAmount:
+                        swapType === 'swapExactIn'
+                            ? minAmountOut.toString()
+                            : maxAmountIn.toString(),
+                    maxPrice: maxPrice.toString(),
+                };
+                if (j == 1) {
+                    tmpSwap.push(swap1hop);
+                }
+                tmpSwap.push(swap2hop);
+            }
+            swaps.push(tmpSwap);
+            console.log('get return over');
+
+            // let swap1 = path.swaps[0];
+            // let poolSwap1 = pools[swap1.pool];
+            // let poolPairDataSwap1 = parsePoolPairData(
+            //     poolSwap1,
+            //     swap1.tokenIn,
+            //     swap1.tokenOut
+            // );
+            //
+            // let swap2 = path.swaps[1];
+            // let poolSwap2 = pools[swap2.pool];
+            // let poolPairDataSwap2 = parsePoolPairData(
+            //     poolSwap2,
+            //     swap2.tokenIn,
+            //     swap2.tokenOut
+            // );
+
+            // // Add swap from first pool
+            // let swap1hop: Swap = {
+            //     pool: path.swaps[0].pool,
+            //     tokenIn: path.swaps[0].tokenIn,
+            //     tokenOut: path.swaps[0].tokenOut,
+            //     swapAmount:
+            //         swapType === 'swapExactIn'
+            //             ? swapAmount.toString()
+            //             : getReturnAmountSwap(
+            //                   pools,
+            //                   poolPairDataSwap2,
+            //                   swapType,
+            //                   swapAmount
+            //               ).toString(),
+            //     limitReturnAmount:
+            //         swapType === 'swapExactIn'
+            //             ? minAmountOut.toString()
+            //             : maxAmountIn.toString(),
+            //     maxPrice: maxPrice.toString(),
+            // };
+            //
+            // // Add swap from second pool
+            // let swap2hop: Swap = {
+            //     pool: path.swaps[1].pool,
+            //     tokenIn: path.swaps[1].tokenIn,
+            //     tokenOut: path.swaps[1].tokenOut,
+            //     swapAmount:
+            //         swapType === 'swapExactIn'
+            //             ? getReturnAmountSwap(
+            //                   pools,
+            //                   poolPairDataSwap1,
+            //                   swapType,
+            //                   swapAmount
+            //               ).toString()
+            //             : swapAmount.toString(),
+            //     limitReturnAmount:
+            //         swapType === 'swapExactIn'
+            //             ? minAmountOut.toString()
+            //             : maxAmountIn.toString(),
+            //     maxPrice: maxPrice.toString(),
+            // };
+            // swaps.push([swap1hop, swap2hop]);
         }
         // Updates the pools in the path with the swaps so that if
         // the new paths use these pools they will have the updated balances
@@ -628,6 +734,10 @@ export const calcTotalReturn = (
     pathIds: string[],
     swapAmounts: BigNumber[]
 ): BigNumber => {
+    console.log('calc Total return:', JSON.stringify(paths));
+    console.log('calc Total return:', JSON.stringify(pathIds));
+    console.log('calc Total return:', JSON.stringify(swapAmounts));
+
     let path;
     let totalReturn = new BigNumber(0);
     let poolsClone = JSON.parse(JSON.stringify(pools)); // we create a clone to avoid

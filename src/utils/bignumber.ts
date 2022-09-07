@@ -6,3 +6,11 @@ BigNumber.config({
 });
 
 export { BigNumber };
+
+export function bnum(val: string | number | BigNumber): BigNumber {
+    return new BigNumber(val.toString());
+}
+
+export const ZERO = bnum(0);
+export const ONE = bnum(1);
+export const INFINITY = bnum('Infinity');

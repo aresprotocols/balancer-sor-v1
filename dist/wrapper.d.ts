@@ -8,6 +8,7 @@ import {
     EffectivePrice,
     Pools,
 } from './types';
+import { RouteProposer } from './router';
 export declare class SOR {
     provider: BaseProvider;
     gasPrice: BigNumber;
@@ -21,6 +22,7 @@ export declare class SOR {
     isAllFetched: boolean;
     poolsUrl: string;
     pools: any;
+    readonly routeProposer: RouteProposer;
     MULTIADDR: {
         [chainId: number]: string;
     };

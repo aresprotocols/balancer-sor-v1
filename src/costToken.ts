@@ -88,7 +88,7 @@ export async function getCostOutputToken(
     } catch (err) {
         // console.log(err)
         // If no pool for provided address (or addr incorrect) then default to 0
-        console.log('Error Getting Token Price. Defaulting to 0.');
+        console.log('Error Getting Token Price. Defaulting to 0.', err);
     }
 
     let costOutputToken = calculateTotalSwapCost(

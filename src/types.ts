@@ -45,6 +45,8 @@ export type Swap = {
     swapAmount?: string;
     limitReturnAmount?: string;
     maxPrice?: string;
+    tokenInDecimals?: number;
+    tokenOutDecimals?: number;
 };
 
 export interface Pools {
@@ -97,4 +99,48 @@ export interface DisabledOptions {
 export interface DisabledToken {
     address: string;
     symbol: string;
+}
+
+export type PoolPairBase = {
+    id: string;
+    address: string;
+    swapFee: BigNumber;
+    tokenIn: string;
+    tokenOut: string;
+    decimalsIn: number;
+    decimalsOut: number;
+    balanceIn: BigNumber;
+    balanceOut: BigNumber;
+    weightIn?: BigNumber;
+    weightOut?: BigNumber;
+};
+
+export interface NewPath {
+    id: string; // pool address if direct path, contactenation of pool addresses if multihop
+    swaps: Swap[];
+    poolPairData: PoolPairBase[];
+    limitAmount: any; // BigNumber
+    pools: Pool[];
+}
+
+export interface SorConfig {
+    chainId: number;
+    weth: string;
+}
+
+export interface SwapOptions {
+    gasPrice: BigNumber;
+    swapGas: BigNumber;
+    timestamp: number;
+    maxPools: number;
+    forceRefresh: boolean;
+}
+
+export interface hopDictionary {
+    [hopToken: string]: Set<string>; // the set of pool ids
+}
+
+export enum SwapTypes {
+    SwapExactIn = 'SwapExactIn',
+    SwapExactOut = 'SwapExactOut',
 }

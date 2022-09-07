@@ -85,3 +85,37 @@ export interface DisabledToken {
     address: string;
     symbol: string;
 }
+export declare type PoolPairBase = {
+    id: string;
+    address: string;
+    swapFee: BigNumber;
+    tokenIn: string;
+    tokenOut: string;
+    decimalsIn: number;
+    decimalsOut: number;
+    balanceIn: BigNumber;
+    balanceOut: BigNumber;
+    weightIn?: BigNumber;
+    weightOut?: BigNumber;
+};
+export interface NewPath {
+    id: string;
+    swaps: Swap[];
+    poolPairData: PoolPairBase[];
+    limitAmount: any;
+    pools: Pool[];
+}
+export interface SorConfig {
+    chainId: number;
+    weth: string;
+}
+export interface SwapOptions {
+    gasPrice: BigNumber;
+    swapGas: BigNumber;
+    timestamp: number;
+    maxPools: number;
+    forceRefresh: boolean;
+}
+export interface hopDictionary {
+    [hopToken: string]: Set<string>;
+}

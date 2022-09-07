@@ -1,5 +1,6 @@
 'use strict';
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.calcTotalReturn = exports.smartOrderRouterMultiHopEpsOfInterest = exports.processEpsOfInterestMultiHop = exports.processPaths = exports.MAX_UINT = void 0;
 const helpers_1 = require('./helpers');
 const bmath_1 = require('./bmath');
 const bignumber_1 = require('./utils/bignumber');

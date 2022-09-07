@@ -11,6 +11,7 @@ import {
 } from './types';
 import { bnum, scale } from './bmath';
 import * as sor from './index';
+import { RouteProposer } from './router';
 
 export class SOR {
     provider: BaseProvider;
@@ -26,6 +27,7 @@ export class SOR {
     isAllFetched: boolean = false;
     poolsUrl: string;
     pools;
+    public readonly routeProposer: RouteProposer;
 
     MULTIADDR: { [chainId: number]: string } = {
         1: '0x514053acec7177e277b947b1ebb5c08ab4c4580e',
@@ -45,6 +47,10 @@ export class SOR {
         this.chainId = ChainId;
         this.poolsUrl = PoolsUrl;
         this.pools = new sor.POOLS();
+        this.routeProposer = new RouteProposer({
+            chainId: ChainId,
+            weth: '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806',
+        });
     }
 
     /*
@@ -205,8 +211,22 @@ export class SOR {
                 poolsList
             );
 
+            const newPath = this.routeProposer.getCandidatePaths(
+                TokenIn,
+                TokenOut,
+                SwapType,
+                poolsList,
+                {
+                    gasPrice: this.gasPrice,
+                    swapGas: new BigNumber('35000'),
+                    maxPools: this.maxPools,
+                    timestamp: Math.floor(Date.now() / 1000),
+                    forceRefresh: false,
+                }
+            );
+
             [paths, epsOfInterest, marketSp] = this.processPathsAndPrices(
-                pathData,
+                newPath,
                 pools,
                 SwapType
             );

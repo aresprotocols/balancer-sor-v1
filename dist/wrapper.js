@@ -1,4 +1,44 @@
 'use strict';
+var __createBinding =
+    (this && this.__createBinding) ||
+    (Object.create
+        ? function(o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              Object.defineProperty(o, k2, {
+                  enumerable: true,
+                  get: function() {
+                      return m[k];
+                  },
+              });
+          }
+        : function(o, m, k, k2) {
+              if (k2 === undefined) k2 = k;
+              o[k2] = m[k];
+          });
+var __setModuleDefault =
+    (this && this.__setModuleDefault) ||
+    (Object.create
+        ? function(o, v) {
+              Object.defineProperty(o, 'default', {
+                  enumerable: true,
+                  value: v,
+              });
+          }
+        : function(o, v) {
+              o['default'] = v;
+          });
+var __importStar =
+    (this && this.__importStar) ||
+    function(mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null)
+            for (var k in mod)
+                if (k !== 'default' && Object.hasOwnProperty.call(mod, k))
+                    __createBinding(result, mod, k);
+        __setModuleDefault(result, mod);
+        return result;
+    };
 var __awaiter =
     (this && this.__awaiter) ||
     function(thisArg, _arguments, P, generator) {
@@ -34,21 +74,12 @@ var __awaiter =
             );
         });
     };
-var __importStar =
-    (this && this.__importStar) ||
-    function(mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null)
-            for (var k in mod)
-                if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-        result['default'] = mod;
-        return result;
-    };
 Object.defineProperty(exports, '__esModule', { value: true });
+exports.SOR = void 0;
 const bignumber_1 = require('./utils/bignumber');
 const bmath_1 = require('./bmath');
 const sor = __importStar(require('./index'));
+const router_1 = require('./router');
 class SOR {
     constructor(Provider, GasPrice, MaxPools, ChainId, PoolsUrl) {
         // avg Balancer swap cost. Can be updated manually if required.
@@ -68,6 +99,10 @@ class SOR {
         this.chainId = ChainId;
         this.poolsUrl = PoolsUrl;
         this.pools = new sor.POOLS();
+        this.routeProposer = new router_1.RouteProposer({
+            chainId: ChainId,
+            weth: '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806',
+        });
     }
     /*
     Find and cache cost of token.
