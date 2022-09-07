@@ -12,6 +12,7 @@ const constants_1 = require('@ethersproject/constants');
 const address_1 = require('@ethersproject/address');
 const bmath_1 = require('../bmath');
 function parseToPoolsDict(pools) {
+    console.log('parseToPoolsDict', pools);
     return Object.fromEntries(
         lodash_clonedeep_1
             .default(pools)

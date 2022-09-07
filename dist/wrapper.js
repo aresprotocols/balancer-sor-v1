@@ -253,11 +253,12 @@ class SOR {
                     TokenOut,
                     poolsList
                 );
+                console.log('pool list:', poolsList);
                 const newPath = this.routeProposer.getCandidatePaths(
                     TokenIn,
                     TokenOut,
                     SwapType,
-                    poolsList,
+                    poolsList.pools,
                     {
                         gasPrice: this.gasPrice,
                         swapGas: new bignumber_1.BigNumber('35000'),

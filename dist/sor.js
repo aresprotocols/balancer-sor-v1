@@ -179,7 +179,8 @@ exports.smartOrderRouterMultiHopEpsOfInterest = (
                 console.log(
                     'total swap amount:',
                     totalInputAmountAfter.toString(),
-                    totalSwapAmount.toString()
+                    totalSwapAmount.toString(),
+                    totalSwapAmount
                 );
                 pathIds = priceBefore.bestPathsIds.slice(0, b);
                 swapAmountsPriceBefore = priceBefore.amounts.slice(0, b);
