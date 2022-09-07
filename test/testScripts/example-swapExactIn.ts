@@ -14,14 +14,14 @@ import { PoolDictionary } from '../../src/types';
 const provider = new JsonRpcProvider(
     'https://rpc-mumbai.maticvigil.com/v1/c1947560c824b65dcc8774279fe1225b3c835d35'
 );
-// const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'; // WETH Address
+const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'; // WETH Address
 // const USDC = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D'; // USDC Address
-// const USDC = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d'; // MBMU Address
+const USDC = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d'; // MBMU Address
 
-const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
-const USDC = '0x40e5e70826ecf94325fffdea0c61aaae3eda46f6';
+// const DAI = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
+// const USDC = '0x40e5e70826ecf94325fffdea0c61aaae3eda46f6';
 
-const amountIn = new BigNumber('1000000000'); // 1 USDC, Always pay attention to Token Decimals. i.e. In this case USDC has 6 decimals.
+const amountIn = new BigNumber('1000000000000'); // 1 USDC, Always pay attention to Token Decimals. i.e. In this case USDC has 6 decimals.
 const tokenIn = DAI;
 const tokenOut = USDC;
 const swapType = 'swapExactIn';

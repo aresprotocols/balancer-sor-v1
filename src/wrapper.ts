@@ -226,6 +226,14 @@ export class SOR {
                 }
             );
 
+            const newPool: PoolDictionary = {};
+            newPath.forEach(path => {
+                path.pools.forEach(pool => {
+                    newPool[pool.id] = pool;
+                });
+            });
+            pools = newPool;
+
             [paths, epsOfInterest, marketSp] = this.processPathsAndPrices(
                 newPath,
                 pools,

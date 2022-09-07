@@ -267,6 +267,13 @@ class SOR {
                         forceRefresh: false,
                     }
                 );
+                const newPool = {};
+                newPath.forEach(path => {
+                    path.pools.forEach(pool => {
+                        newPool[pool.id] = pool;
+                    });
+                });
+                pools = newPool;
                 [paths, epsOfInterest, marketSp] = this.processPathsAndPrices(
                     newPath,
                     pools,

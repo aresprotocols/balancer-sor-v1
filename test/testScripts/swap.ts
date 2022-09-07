@@ -679,6 +679,11 @@ const swapCost = new BigNumber('100000');
 let sor;
 const assetInAddress = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D';
 const assetOutAddress = '0xde4539989309d3c59C10A4cF8CE307BC1bacD287';
+
+// const assetInAddress = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
+// const assetOutAddress = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d';
+//
+
 const getSwap = async () => {
     const pools = await getPools();
 
@@ -687,6 +692,7 @@ const getSwap = async () => {
     sor.pools.getAllPublicSwapPools = function(url: any): any {
         return { pools };
     };
+    await sor.fetchPools();
     sor.MULTIADDR[80001] = '0xAFdbA29203159a16b38Be3e42Bb6bbB0C39a73Ba';
     await sor.setCostOutputToken(assetOutAddress);
     await sor.fetchFilteredPairPools(assetInAddress, assetOutAddress);
