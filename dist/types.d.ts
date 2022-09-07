@@ -40,6 +40,8 @@ export declare type Swap = {
     swapAmount?: string;
     limitReturnAmount?: string;
     maxPrice?: string;
+    tokenInDecimals?: number;
+    tokenOutDecimals?: number;
 };
 export interface Pools {
     pools: Pool[];
@@ -118,4 +120,8 @@ export interface SwapOptions {
 }
 export interface hopDictionary {
     [hopToken: string]: Set<string>;
+}
+export declare enum SwapTypes {
+    SwapExactIn = 'SwapExactIn',
+    SwapExactOut = 'SwapExactOut',
 }

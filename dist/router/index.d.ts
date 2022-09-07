@@ -1,4 +1,6 @@
-import { NewPath, Pool, SorConfig, SwapOptions } from '../types';
+import { NewPath, Pool, SorConfig, Swap, SwapOptions } from '../types';
+import { BigNumber as OldBigNumber } from '../utils/bignumber';
+import { BigNumber } from '@ethersproject/bignumber';
 export declare class RouteProposer {
     private readonly config;
     cache: Record<
@@ -19,3 +21,12 @@ export declare class RouteProposer {
         swapOptions: SwapOptions
     ): NewPath[];
 }
+export declare const getBestPaths: (
+    paths: NewPath[],
+    swapType: string,
+    totalSwapAmount: BigNumber,
+    inputDecimals: number,
+    outputDecimals: number,
+    maxPools: number,
+    costReturnToken: BigNumber
+) => [Swap[][], OldBigNumber, OldBigNumber, OldBigNumber];

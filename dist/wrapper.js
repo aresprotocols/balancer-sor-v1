@@ -253,8 +253,21 @@ class SOR {
                     TokenOut,
                     poolsList
                 );
+                const newPath = this.routeProposer.getCandidatePaths(
+                    TokenIn,
+                    TokenOut,
+                    SwapType,
+                    poolsList,
+                    {
+                        gasPrice: this.gasPrice,
+                        swapGas: new bignumber_1.BigNumber('35000'),
+                        maxPools: this.maxPools,
+                        timestamp: Math.floor(Date.now() / 1000),
+                        forceRefresh: false,
+                    }
+                );
                 [paths, epsOfInterest, marketSp] = this.processPathsAndPrices(
-                    pathData,
+                    newPath,
                     pools,
                     SwapType
                 );
