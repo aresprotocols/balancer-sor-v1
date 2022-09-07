@@ -211,6 +211,7 @@ export class SOR {
                 poolsList
             );
 
+            console.log('pool list:', poolsList);
             const newPath = this.routeProposer.getCandidatePaths(
                 TokenIn,
                 TokenOut,
