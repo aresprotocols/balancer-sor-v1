@@ -215,7 +215,7 @@ export class SOR {
                 TokenIn,
                 TokenOut,
                 SwapType,
-                poolsList,
+                poolsList.pools,
                 {
                     gasPrice: this.gasPrice,
                     swapGas: new BigNumber('35000'),

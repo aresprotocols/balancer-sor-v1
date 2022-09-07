@@ -15,6 +15,7 @@ import { getAddress } from '@ethersproject/address';
 import { bdiv, bmul, scale } from '../bmath';
 
 export function parseToPoolsDict(pools: Pool[]): PoolDictionary {
+    console.log('parseToPoolsDict', pools);
     return Object.fromEntries(
         cloneDeep(pools)
             .filter(
