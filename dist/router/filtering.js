@@ -358,6 +358,9 @@ const getNormalizedLiquidity1 = poolPairData => {
 // so we can find the most liquid poolPairData considering the effect of uneven weigths
 function getNormalizedLiquidity(poolPairData) {
     let { weightIn, weightOut, balanceIn, balanceOut, swapFee } = poolPairData;
+    balanceOut = bignumber_1.bnum(balanceOut.toString());
+    weightIn = bignumber_1.bnum(weightIn.toString());
+    weightOut = bignumber_1.bnum(weightOut.toString());
     return bmath_1.bdiv(
         bmath_1.bmul(balanceOut, weightIn),
         weightIn.plus(weightOut)

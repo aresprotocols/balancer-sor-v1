@@ -677,11 +677,12 @@ const provider = new JsonRpcProvider(
 const gasPrice = new BigNumber('30000000000');
 const swapCost = new BigNumber('100000');
 let sor;
-const assetInAddress = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D';
-const assetOutAddress = '0xde4539989309d3c59C10A4cF8CE307BC1bacD287';
+// const assetInAddress = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D';
+// const assetOutAddress = '0xde4539989309d3c59C10A4cF8CE307BC1bacD287';
 
-// const assetInAddress = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
-// const assetOutAddress = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d';
+const assetInAddress = '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806';
+// const assetOutAddress = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d';  // MBMU
+const assetOutAddress = '0x6a46a749abda4f4bd8959b5c3be0a0aaded1738e'; // SUS
 //
 
 const getSwap = async () => {
@@ -712,7 +713,7 @@ const onInAmountChange = async () => {
         console.log('sor=======', sor);
     }
 
-    const assetInAmount = new BigNumber(5000000); // scal
+    const assetInAmount = new BigNumber(10000000000); // scal
     console.log('assetInAmount', assetInAmount);
 
     console.time(`[SOR] getSwaps ${assetInAddress} ${assetOutAddress} exactIn`);
