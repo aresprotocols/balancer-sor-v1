@@ -706,7 +706,7 @@ const onInAmountChange = async () => {
         console.log('sor=======', sor);
     }
 
-    const assetInAmount = new BigNumber(500000); // scal
+    const assetInAmount = new BigNumber(5000000); // scal
     console.log('assetInAmount', assetInAmount);
 
     console.time(`[SOR] getSwaps ${assetInAddress} ${assetOutAddress} exactIn`);

@@ -502,6 +502,7 @@ class SOR {
     }
     // SwapType dependent - calculates paths prices/amounts
     processPathsAndPrices(PathArray, PoolsDict, SwapType) {
+        console.log('PoolsDict', PoolsDict);
         const paths = sor.processPaths(PathArray, PoolsDict, SwapType);
         const bestSpotPrice = sor.getMarketSpotPrice(paths);
         const eps = sor.processEpsOfInterestMultiHop(

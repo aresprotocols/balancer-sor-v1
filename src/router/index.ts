@@ -59,6 +59,9 @@ export class RouteProposer {
         );
 
         console.log('pathData', JSON.stringify(pathData));
+        if (pathData.length > 0) {
+            return [...pathData];
+        }
 
         const boostedPaths = getBoostedPaths(
             tokenIn,

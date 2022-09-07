@@ -47,6 +47,9 @@ class RouteProposer {
             poolsAllDict
         );
         console.log('pathData', JSON.stringify(pathData));
+        if (pathData.length > 0) {
+            return [...pathData];
+        }
         const boostedPaths = filtering_1.getBoostedPaths(
             tokenIn,
             tokenOut,

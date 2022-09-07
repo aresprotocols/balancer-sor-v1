@@ -498,6 +498,7 @@ export class SOR {
         PoolsDict: PoolDictionary,
         SwapType: string
     ): [Path[], EffectivePrice[], BigNumber] {
+        console.log('PoolsDict', PoolsDict);
         const paths: Path[] = sor.processPaths(PathArray, PoolsDict, SwapType);
 
         const bestSpotPrice = sor.getMarketSpotPrice(paths);
