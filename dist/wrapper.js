@@ -81,7 +81,7 @@ const bmath_1 = require('./bmath');
 const sor = __importStar(require('./index'));
 const router_1 = require('./router');
 class SOR {
-    constructor(Provider, GasPrice, MaxPools, ChainId, PoolsUrl) {
+    constructor(Provider, GasPrice, MaxPools, ChainId, PoolsUrl, wethAddress) {
         // avg Balancer swap cost. Can be updated manually if required.
         this.swapCost = new bignumber_1.BigNumber('100000');
         this.tokenCost = {};
@@ -101,7 +101,7 @@ class SOR {
         this.pools = new sor.POOLS();
         this.routeProposer = new router_1.RouteProposer({
             chainId: ChainId,
-            weth: '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806',
+            weth: wethAddress,
         });
     }
     /*

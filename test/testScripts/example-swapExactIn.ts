@@ -75,7 +75,14 @@ async function swapExactIn() {
     );
     console.log('filtering pools...', directPools);
 
-    const smartRouter = new SOR(provider, gasPrice, noPools, 80001, poolsUrl);
+    const smartRouter = new SOR(
+        provider,
+        gasPrice,
+        noPools,
+        80001,
+        poolsUrl,
+        '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'
+    );
 
     const path = smartRouter.routeProposer.getCandidatePaths(
         tokenIn,

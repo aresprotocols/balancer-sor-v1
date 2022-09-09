@@ -39,7 +39,8 @@ export class SOR {
         GasPrice: BigNumber,
         MaxPools: number,
         ChainId: number,
-        PoolsUrl: string
+        PoolsUrl: string,
+        wethAddress: string
     ) {
         this.provider = Provider;
         this.gasPrice = GasPrice;
@@ -49,7 +50,7 @@ export class SOR {
         this.pools = new sor.POOLS();
         this.routeProposer = new RouteProposer({
             chainId: ChainId,
-            weth: '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806',
+            weth: wethAddress,
         });
     }
 

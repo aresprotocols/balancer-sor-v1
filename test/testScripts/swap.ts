@@ -688,7 +688,14 @@ const assetOutAddress = '0x6a46a749abda4f4bd8959b5c3be0a0aaded1738e'; // SUS
 const getSwap = async () => {
     const pools = await getPools();
 
-    sor = new SOR(provider, gasPrice, 4, 80001, 'https://');
+    sor = new SOR(
+        provider,
+        gasPrice,
+        4,
+        80001,
+        'https://',
+        '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'
+    );
 
     sor.pools.getAllPublicSwapPools = function(url: any): any {
         return { pools };

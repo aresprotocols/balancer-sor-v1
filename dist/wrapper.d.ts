@@ -31,7 +31,8 @@ export declare class SOR {
         GasPrice: BigNumber,
         MaxPools: number,
         ChainId: number,
-        PoolsUrl: string
+        PoolsUrl: string,
+        wethAddress: string
     );
     setCostOutputToken(TokenOut: string, Cost?: BigNumber): Promise<void>;
     fetchPools(): Promise<boolean>;
