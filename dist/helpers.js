@@ -38,6 +38,7 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
             newSwaps = swaps.reverse();
         }
         let tmpLimitAmount;
+        let prePoolPairData;
         newSwaps.forEach((swap, index) => {
             let id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
             let poolPairDataSwap = poolPairData[id];
@@ -47,9 +48,18 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
                     swapType
                 );
             } else {
+                const preSwap = newSwaps[index - 1];
+                const preId = `${preSwap.pool}${preSwap.tokenIn}${preSwap.tokenOut}`;
+                prePoolPairData = poolPairData[preId];
                 tmpLimitAmount = bignumber_1.BigNumber.min(
                     tmpLimitAmount,
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
+                    bmath_1.bmul(
+                        getLimitAmountSwap(
+                            poolPairDataSwap.poolPairData,
+                            swapType
+                        ),
+                        prePoolPairData.sp
+                    ) // we need to multiply the limit_IN of
                 );
             }
         });
@@ -154,7 +164,7 @@ function getSlippageLinearizedSpotPriceAfterSwapPath(
         const totalBalanceIn = Object.keys(poolPairData)
             .map(key => poolPairData[key].poolPairData.balanceIn)
             .reduce((previousValue, currentValue) => {
-                return previousValue.plus(currentValue);
+                return currentValue.times(previousValue);
             });
         console.log('totalBalanceIn', JSON.stringify(totalBalanceIn));
         if (totalBalanceIn.isEqualTo(bmath_1.bnum(0))) {
@@ -192,13 +202,31 @@ function getSlippageLinearizedSpotPriceAfterSwapPath(
                     numerator = numerator1.plus(numerator2).plus(numerator3);
                 }
             });
-            let slippage;
+            let slippage = new bignumber_1.BigNumber(0);
             if (swapType === 'swapExactIn') {
                 swaps.forEach((swap, i) => {
-                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
-                    const p = poolPairData[id].poolPairData;
-                    let denominator1 = bmath_1.bmul(p.balanceIn, p.weightOut);
-                    slippage = bmath_1.bdiv(numerator, denominator1);
+                    if (i !== 0) {
+                        const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                        const p = poolPairData[id].poolPairData;
+                        const preId = `${swaps[i - 1].pool}${
+                            swaps[i - 1].tokenIn
+                        }${swaps[i - 1].tokenOut}`;
+                        const p2 = poolPairData[preId].poolPairData;
+                        let denominator1 = bmath_1.bmul(
+                            p.balanceIn,
+                            p.weightOut
+                        );
+                        const denominator2 = bmath_1.bmul(
+                            p2.balanceIn,
+                            p2.weightOut
+                        );
+                        slippage = slippage.plus(
+                            bmath_1.bdiv(
+                                bmath_1.bdiv(numerator, denominator1),
+                                denominator2
+                            )
+                        );
+                    }
                 });
                 return slippage;
             } else {
