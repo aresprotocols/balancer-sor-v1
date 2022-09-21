@@ -57,6 +57,7 @@ export function getLimitAmountSwapPath(
             newSwaps = swaps.reverse();
         }
         let tmpLimitAmount;
+        let prePoolPairData;
         newSwaps.forEach((swap, index) => {
             let id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
             let poolPairDataSwap = poolPairData[id];
@@ -66,9 +67,18 @@ export function getLimitAmountSwapPath(
                     swapType
                 );
             } else {
+                const preSwap = newSwaps[index - 1];
+                const preId = `${preSwap.pool}${preSwap.tokenIn}${preSwap.tokenOut}`;
+                prePoolPairData = poolPairData[preId];
                 tmpLimitAmount = BigNumber.min(
                     tmpLimitAmount,
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
+                    bmul(
+                        getLimitAmountSwap(
+                            poolPairDataSwap.poolPairData,
+                            swapType
+                        ),
+                        prePoolPairData.sp
+                    ) // we need to multiply the limit_IN of
                 );
             }
         });
@@ -174,7 +184,7 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
         const totalBalanceIn = Object.keys(poolPairData)
             .map(key => poolPairData[key].poolPairData.balanceIn)
             .reduce((previousValue, currentValue) => {
-                return previousValue.plus(currentValue);
+                return currentValue.times(previousValue);
             });
 
         console.log('totalBalanceIn', JSON.stringify(totalBalanceIn));
@@ -216,13 +226,22 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
                     numerator = numerator1.plus(numerator2).plus(numerator3);
                 }
             });
-            let slippage;
+            let slippage = new BigNumber(0);
             if (swapType === 'swapExactIn') {
                 swaps.forEach((swap, i) => {
-                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
-                    const p = poolPairData[id].poolPairData;
-                    let denominator1 = bmul(p.balanceIn, p.weightOut);
-                    slippage = bdiv(numerator, denominator1);
+                    if (i !== 0) {
+                        const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                        const p = poolPairData[id].poolPairData;
+                        const preId = `${swaps[i - 1].pool}${
+                            swaps[i - 1].tokenIn
+                        }${swaps[i - 1].tokenOut}`;
+                        const p2 = poolPairData[preId].poolPairData;
+                        let denominator1 = bmul(p.balanceIn, p.weightOut);
+                        const denominator2 = bmul(p2.balanceIn, p2.weightOut);
+                        slippage = slippage.plus(
+                            bdiv(bdiv(numerator, denominator1), denominator2)
+                        );
+                    }
                 });
                 return slippage;
             } else {
