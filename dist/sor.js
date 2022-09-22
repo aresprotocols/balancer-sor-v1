@@ -655,6 +655,7 @@ function getSwapAmountsForPriceOfInterest(paths, pathIds, poi) {
             poi.minus(path.spotPrice),
             path.slippagePriceFactor
         );
+        console.log('inputAmount', inputAmount.toString());
         if (inputAmount.isNaN()) inputAmount = bmath_1.bnum(0);
         if (path.limitAmount.isLessThan(inputAmount)) {
             inputAmount = path.limitAmount;

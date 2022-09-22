@@ -718,6 +718,8 @@ function getSwapAmountsForPriceOfInterest(
             path.slippagePriceFactor
         );
 
+        console.log('inputAmount', inputAmount.toString());
+
         if (inputAmount.isNaN()) inputAmount = bnum(0);
 
         if (path.limitAmount.isLessThan(inputAmount)) {

@@ -80,6 +80,10 @@ export function getLimitAmountSwapPath(
                         prePoolPairData.sp
                     ) // we need to multiply the limit_IN of
                 );
+                tmpLimitAmount = bmul(
+                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType),
+                    prePoolPairData.sp
+                );
             }
         });
         return tmpLimitAmount;
@@ -236,6 +240,7 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
                             swaps[i - 1].tokenIn
                         }${swaps[i - 1].tokenOut}`;
                         const p2 = poolPairData[preId].poolPairData;
+
                         let denominator1 = bmul(p.balanceIn, p.weightOut);
                         const denominator2 = bmul(p2.balanceIn, p2.weightOut);
                         slippage = slippage.plus(
@@ -248,11 +253,21 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
                 swaps.forEach((swap, i) => {
                     const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
                     const p = poolPairData[id].poolPairData;
+                    const preId = `${swaps[i - 1].pool}${swaps[i - 1].tokenIn}${
+                        swaps[i - 1].tokenOut
+                    }`;
+                    const p2 = poolPairData[preId].poolPairData;
                     let denominator1 = bmul(
                         BONE.minus(p.swapFee),
                         bmul(p.balanceOut, p.weightIn)
                     );
-                    slippage = bdiv(numerator, denominator1);
+                    let denominator2 = bmul(
+                        BONE.minus(p2.swapFee),
+                        bmul(p2.balanceOut, p2.weightIn)
+                    );
+                    slippage = slippage.plus(
+                        bdiv(bdiv(numerator, denominator1), denominator2)
+                    );
                 });
                 return slippage;
             }

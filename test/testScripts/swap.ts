@@ -215,9 +215,9 @@ let sor;
 // const assetInAddress = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D';
 // const assetOutAddress = '0xde4539989309d3c59C10A4cF8CE307BC1bacD287';
 
-const assetInAddress = '0x3C666c26Baf19DE73F9BACD1453894602D55a162'; // USDC
+const assetInAddress = '0xd23BBE4386e2a738085990Bad5773CC16561b910'; // WETH
 // const assetOutAddress = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d';  // MBMU
-const assetOutAddress = '0x04dac410a1838c20719783cdfe8f88fdfddf4d32'; // SUS
+const assetOutAddress = '0xfaf3da4041d98eead0d7b89582e451a33aa68f81'; // MFR
 //
 
 const getSwap = async () => {
@@ -226,7 +226,7 @@ const getSwap = async () => {
     sor = new SOR(
         provider,
         gasPrice,
-        4,
+        6,
         80001,
         'https://',
         '0xA95aA7229Aaf354CA18FB8f9A5aA3e78B88a2806'
@@ -254,7 +254,7 @@ const onInAmountChange = async () => {
         console.log('sor=======');
     }
 
-    const assetInAmount = new BigNumber(5000000); // scal
+    const assetInAmount = new BigNumber(5000000000000000); // scal
     console.log('assetInAmount', assetInAmount);
 
     console.time(`[SOR] getSwaps ${assetInAddress} ${assetOutAddress} exactIn`);

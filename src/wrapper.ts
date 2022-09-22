@@ -241,6 +241,9 @@ export class SOR {
                 SwapType
             );
 
+            console.log('process path', JSON.stringify(paths));
+            console.log('process path', JSON.stringify(epsOfInterest));
+
             // Update cache if used
             if (UserProcessCache)
                 this.processedDataCache[`${TokenIn}${TokenOut}${SwapType}`] = {
