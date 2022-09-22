@@ -172,6 +172,12 @@ exports.smartOrderRouterMultiHopEpsOfInterest = (
             let totalInputAmountAfter = swapAmountsAfter
                 .slice(0, b)
                 .reduce((a, b) => a.plus(b));
+            console.log(
+                'pre total swap amount:',
+                totalInputAmountAfter.toString(),
+                totalSwapAmount.toString(),
+                totalSwapAmount
+            );
             // If totalInputAmountAfter is greater than totalSwapAmount we know
             // we found a solution to trade, now all we need to do is interpolate
             // between swapAmountsPriceBefore and swapAmountsPriceAfter

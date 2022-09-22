@@ -70,19 +70,21 @@ export function getLimitAmountSwapPath(
                 const preSwap = newSwaps[index - 1];
                 const preId = `${preSwap.pool}${preSwap.tokenIn}${preSwap.tokenOut}`;
                 prePoolPairData = poolPairData[preId];
-                tmpLimitAmount = BigNumber.min(
-                    tmpLimitAmount,
-                    bmul(
-                        getLimitAmountSwap(
-                            poolPairDataSwap.poolPairData,
-                            swapType
-                        ),
-                        prePoolPairData.sp
-                    ) // we need to multiply the limit_IN of
-                );
-                tmpLimitAmount = bmul(
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType),
-                    prePoolPairData.sp
+
+                // tmpLimitAmount = BigNumber.min(
+                //     tmpLimitAmount,
+                //     bmul(
+                //         getLimitAmountSwap(
+                //             poolPairDataSwap.poolPairData,
+                //             swapType
+                //         ),
+                //         prePoolPairData.sp
+                //     ) // we need to multiply the limit_IN of
+                // );
+
+                tmpLimitAmount = getLimitAmountSwap(
+                    poolPairDataSwap.poolPairData,
+                    swapType
                 );
             }
         });
