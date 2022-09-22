@@ -251,23 +251,25 @@ export function getSlippageLinearizedSpotPriceAfterSwapPath(
                 return slippage;
             } else {
                 swaps.forEach((swap, i) => {
-                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
-                    const p = poolPairData[id].poolPairData;
-                    const preId = `${swaps[i - 1].pool}${swaps[i - 1].tokenIn}${
-                        swaps[i - 1].tokenOut
-                    }`;
-                    const p2 = poolPairData[preId].poolPairData;
-                    let denominator1 = bmul(
-                        BONE.minus(p.swapFee),
-                        bmul(p.balanceOut, p.weightIn)
-                    );
-                    let denominator2 = bmul(
-                        BONE.minus(p2.swapFee),
-                        bmul(p2.balanceOut, p2.weightIn)
-                    );
-                    slippage = slippage.plus(
-                        bdiv(bdiv(numerator, denominator1), denominator2)
-                    );
+                    if (i !== 0) {
+                        const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                        const p = poolPairData[id].poolPairData;
+                        const preId = `${swaps[i - 1].pool}${
+                            swaps[i - 1].tokenIn
+                        }${swaps[i - 1].tokenOut}`;
+                        const p2 = poolPairData[preId].poolPairData;
+                        let denominator1 = bmul(
+                            BONE.minus(p.swapFee),
+                            bmul(p.balanceOut, p.weightIn)
+                        );
+                        let denominator2 = bmul(
+                            BONE.minus(p2.swapFee),
+                            bmul(p2.balanceOut, p2.weightIn)
+                        );
+                        slippage = slippage.plus(
+                            bdiv(bdiv(numerator, denominator1), denominator2)
+                        );
+                    }
                 });
                 return slippage;
             }

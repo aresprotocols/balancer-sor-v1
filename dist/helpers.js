@@ -235,26 +235,28 @@ function getSlippageLinearizedSpotPriceAfterSwapPath(
                 return slippage;
             } else {
                 swaps.forEach((swap, i) => {
-                    const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
-                    const p = poolPairData[id].poolPairData;
-                    const preId = `${swaps[i - 1].pool}${swaps[i - 1].tokenIn}${
-                        swaps[i - 1].tokenOut
-                    }`;
-                    const p2 = poolPairData[preId].poolPairData;
-                    let denominator1 = bmath_1.bmul(
-                        bmath_1.BONE.minus(p.swapFee),
-                        bmath_1.bmul(p.balanceOut, p.weightIn)
-                    );
-                    let denominator2 = bmath_1.bmul(
-                        bmath_1.BONE.minus(p2.swapFee),
-                        bmath_1.bmul(p2.balanceOut, p2.weightIn)
-                    );
-                    slippage = slippage.plus(
-                        bmath_1.bdiv(
-                            bmath_1.bdiv(numerator, denominator1),
-                            denominator2
-                        )
-                    );
+                    if (i !== 0) {
+                        const id = `${swap.pool}${swap.tokenIn}${swap.tokenOut}`;
+                        const p = poolPairData[id].poolPairData;
+                        const preId = `${swaps[i - 1].pool}${
+                            swaps[i - 1].tokenIn
+                        }${swaps[i - 1].tokenOut}`;
+                        const p2 = poolPairData[preId].poolPairData;
+                        let denominator1 = bmath_1.bmul(
+                            bmath_1.BONE.minus(p.swapFee),
+                            bmath_1.bmul(p.balanceOut, p.weightIn)
+                        );
+                        let denominator2 = bmath_1.bmul(
+                            bmath_1.BONE.minus(p2.swapFee),
+                            bmath_1.bmul(p2.balanceOut, p2.weightIn)
+                        );
+                        slippage = slippage.plus(
+                            bmath_1.bdiv(
+                                bmath_1.bdiv(numerator, denominator1),
+                                denominator2
+                            )
+                        );
+                    }
                 });
                 return slippage;
             }
