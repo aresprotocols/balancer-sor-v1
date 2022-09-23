@@ -48,23 +48,31 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
                     swapType
                 );
             } else {
-                const preSwap = newSwaps[index - 1];
+                const preSwap = newSwaps[0];
                 const preId = `${preSwap.pool}${preSwap.tokenIn}${preSwap.tokenOut}`;
                 prePoolPairData = poolPairData[preId];
-                // tmpLimitAmount = BigNumber.min(
-                //     tmpLimitAmount,
-                //     bmul(
-                //         getLimitAmountSwap(
-                //             poolPairDataSwap.poolPairData,
-                //             swapType
-                //         ),
-                //         prePoolPairData.sp
-                //     ) // we need to multiply the limit_IN of
-                // );
-                tmpLimitAmount = getLimitAmountSwap(
-                    poolPairDataSwap.poolPairData,
-                    swapType
+                tmpLimitAmount = bignumber_1.BigNumber.min(
+                    tmpLimitAmount,
+                    bmath_1.bmul(
+                        getLimitAmountSwap(
+                            poolPairDataSwap.poolPairData,
+                            swapType
+                        ),
+                        prePoolPairData.sp
+                    ) // we need to multiply the limit_IN of
                 );
+                // if (index === newSwaps.length - 1) {
+                //     tmpLimitAmount = BigNumber.min(
+                //         tmpLimitAmount,
+                //         bmul(
+                //             getLimitAmountSwap(
+                //                 poolPairDataSwap.poolPairData,
+                //                 swapType
+                //             ),
+                //             prePoolPairData.sp
+                //         ) // we need to multiply the limit_IN of
+                //     );
+                // }
             }
         });
         return tmpLimitAmount;
