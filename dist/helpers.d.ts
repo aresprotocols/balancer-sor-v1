@@ -5,9 +5,10 @@ import {
     Pool,
     PoolDictionary,
     DisabledOptions,
+    PoolPairBase,
 } from './types';
 export declare function getLimitAmountSwap(
-    poolPairData: PoolPairData,
+    poolPairData: PoolPairBase,
     swapType: string
 ): BigNumber;
 export declare function getLimitAmountSwapPath(

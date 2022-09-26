@@ -14,6 +14,11 @@ const disabled_tokens_json_1 = __importDefault(
 );
 function getLimitAmountSwap(poolPairData, swapType) {
     if (swapType === 'swapExactIn') {
+        if (poolPairData.decimalsIn < 18) {
+            return bmath_1
+                .bnum(poolPairData.balanceIn)
+                .times(bmath_1.bnum(10).pow(18 - poolPairData.decimalsIn));
+        }
         return bmath_1.bmul(poolPairData.balanceIn, bmath_1.MAX_IN_RATIO);
     } else {
         return bmath_1.bmul(poolPairData.balanceOut, bmath_1.MAX_OUT_RATIO);
@@ -53,14 +58,7 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
                 prePoolPairData = poolPairData[preId];
                 tmpLimitAmount = bignumber_1.BigNumber.min(
                     tmpLimitAmount,
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType),
-                    bmath_1.bmul(
-                        getLimitAmountSwap(
-                            poolPairDataSwap.poolPairData,
-                            swapType
-                        ),
-                        prePoolPairData.sp
-                    ) // we need to multiply the limit_IN of
+                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
                 );
                 if (index === newSwaps.length - 1) {
                     // tmpLimitAmount = BigNumber.min(
@@ -73,10 +71,13 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
                     //         prePoolPairData.sp
                     //     ) // we need to multiply the limit_IN of
                     // );
-                    tmpLimitAmount = getLimitAmountSwap(
-                        poolPairDataSwap.poolPairData,
-                        swapType
-                    );
+                    // tmpLimitAmount = bmul(
+                    //     getLimitAmountSwap(
+                    //         poolPairDataSwap.poolPairData,
+                    //         swapType
+                    //     ),
+                    //     prePoolPairData.sp
+                    // )
                 }
             }
         });

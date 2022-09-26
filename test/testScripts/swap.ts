@@ -20,19 +20,19 @@ const getPools = async () => {
             swapFee: '0.0015',
             totalWeight: '43.75',
             totalShares: '100',
-            totalSwapVolume: '45.40173261310743283930826911712211',
-            liquidity: '3064.63127775',
+            totalSwapVolume: '58.08762961310743283930826911712211',
+            liquidity: '3042.430958',
             tokensList: [
                 '0xd23bbe4386e2a738085990bad5773cc16561b910',
                 '0x3c666c26baf19de73f9bacd1453894602d55a162',
             ],
-            swapsCount: '4',
+            swapsCount: '5',
             tokens: [
                 {
                     id:
                         '0xdf5d614bd438afc1c1e06243a56b5aa436d18334-0x3c666c26baf19de73f9bacd1453894602d55a162',
                     address: '0x3c666c26baf19de73f9bacd1453894602d55a162',
-                    balance: '1751.217873',
+                    balance: '1738.531976',
                     decimals: 6,
                     symbol: 'USDC',
                     denormWeight: '25',
@@ -43,7 +43,7 @@ const getPools = async () => {
                     id:
                         '0xdf5d614bd438afc1c1e06243a56b5aa436d18334-0xd23bbe4386e2a738085990bad5773cc16561b910',
                     address: '0xd23bbe4386e2a738085990bad5773cc16561b910',
-                    balance: '1.02504715474019074',
+                    balance: '1.03504715474019074',
                     decimals: 18,
                     symbol: 'WETH',
                     denormWeight: '18.75',
@@ -52,7 +52,7 @@ const getPools = async () => {
                 },
             ],
             swaps: [],
-            poolLiquidity: 3064.63,
+            poolLiquidity: 3042.43,
         },
         {
             id: '0x30fa82367f64d80d8f1f82472cdaac9767283005',
@@ -70,19 +70,19 @@ const getPools = async () => {
             swapFee: '0.0015',
             totalWeight: '50',
             totalShares: '100',
-            totalSwapVolume: '135.8865543791683604158879544196899',
-            liquidity: '1399.271414070703535176758837941897',
+            totalSwapVolume: '157.8910241219640392841661498759594',
+            liquidity: '1437.223631431571578578928946447323',
             tokensList: [
                 '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
                 '0x3c666c26baf19de73f9bacd1453894602d55a162',
             ],
-            swapsCount: '9',
+            swapsCount: '11',
             tokens: [
                 {
                     id:
                         '0x30fa82367f64d80d8f1f82472cdaac9767283005-0x3c666c26baf19de73f9bacd1453894602d55a162',
                     address: '0x3c666c26baf19de73f9bacd1453894602d55a162',
-                    balance: '799.543686',
+                    balance: '821.229583',
                     decimals: 6,
                     symbol: 'USDC',
                     denormWeight: '28.57',
@@ -93,7 +93,7 @@ const getPools = async () => {
                     id:
                         '0x30fa82367f64d80d8f1f82472cdaac9767283005-0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
                     address: '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
-                    balance: '600.540383504859979449',
+                    balance: '579.522885397115896776',
                     decimals: 18,
                     symbol: 'DAI',
                     denormWeight: '21.43',
@@ -102,7 +102,7 @@ const getPools = async () => {
                 },
             ],
             swaps: [],
-            poolLiquidity: 1399.27,
+            poolLiquidity: 1437.22,
         },
         {
             id: '0x45fd07ad461e0548e1a4e1ebd2b81d22e6577646',
@@ -120,19 +120,19 @@ const getPools = async () => {
             swapFee: '0.0012',
             totalWeight: '31.815',
             totalShares: '107.6923076923076922',
-            totalSwapVolume: '231.864693182089086233338833712947',
-            liquidity: '949.0897357726784931651763665316543',
+            totalSwapVolume: '241.1272006614456245613883495665791',
+            liquidity: '1007.686709737402245146077942179954',
             tokensList: [
                 '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
                 '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
             ],
-            swapsCount: '6',
+            swapsCount: '7',
             tokens: [
                 {
                     id:
                         '0x45fd07ad461e0548e1a4e1ebd2b81d22e6577646-0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
                     address: '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
-                    balance: '533.164507869189871659',
+                    balance: '541.728341221342339984',
                     decimals: 18,
                     symbol: 'DAI',
                     denormWeight: '18.18',
@@ -143,7 +143,7 @@ const getPools = async () => {
                     id:
                         '0x45fd07ad461e0548e1a4e1ebd2b81d22e6577646-0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
                     address: '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
-                    balance: '1.400022368485697727',
+                    balance: '1.370625661412984319',
                     decimals: 18,
                     symbol: 'MOAR',
                     denormWeight: '13.635',
@@ -152,7 +152,7 @@ const getPools = async () => {
                 },
             ],
             swaps: [],
-            poolLiquidity: 939.2,
+            poolLiquidity: 1007.69,
         },
         {
             id: '0x4b08af8aa1e86c719d4cafc4c53331c4f6333803',
@@ -170,19 +170,19 @@ const getPools = async () => {
             swapFee: '0.0015',
             totalWeight: '32.14',
             totalShares: '100',
-            totalSwapVolume: '38.86476033640890004648107383961114',
-            liquidity: '550.0861305752404142287250449651828',
+            totalSwapVolume: '48.38096429583273196950741650005047',
+            liquidity: '667.8411219843649875341421865443388',
             tokensList: [
                 '0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
                 '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
             ],
-            swapsCount: '2',
+            swapsCount: '3',
             tokens: [
                 {
                     id:
                         '0x4b08af8aa1e86c719d4cafc4c53331c4f6333803-0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
                     address: '0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
-                    balance: '1.056953623364749324',
+                    balance: '1.030521404644771327',
                     decimals: 18,
                     symbol: 'MFER',
                     denormWeight: '17.855',
@@ -193,7 +193,7 @@ const getPools = async () => {
                     id:
                         '0x4b08af8aa1e86c719d4cafc4c53331c4f6333803-0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
                     address: '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
-                    balance: '0.912661293969904469',
+                    balance: '0.942058001042617877',
                     decimals: 18,
                     symbol: 'MOAR',
                     denormWeight: '14.285',
@@ -202,7 +202,7 @@ const getPools = async () => {
                 },
             ],
             swaps: [],
-            poolLiquidity: 597.2,
+            poolLiquidity: 668.54,
         },
         {
             id: '0x1d68f84c4b26c741466c91284237006604cfc076',
@@ -219,20 +219,20 @@ const getPools = async () => {
             ],
             swapFee: '0.0015',
             totalWeight: '30',
-            totalShares: '100',
-            totalSwapVolume: '38.12470171820710409767722985710696',
-            liquidity: '171.8326095886718720114839618868587',
+            totalShares: '382.0263654939510933',
+            totalSwapVolume: '48.88772382589966742951672278076269',
+            liquidity: '150.3065653732867453478049760395473',
             tokensList: [
                 '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
                 '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
             ],
-            swapsCount: '4',
+            swapsCount: '5',
             tokens: [
                 {
                     id:
                         '0x1d68f84c4b26c741466c91284237006604cfc076-0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
                     address: '0x948b2f671242cc12dda4abc7e9fd348f6cfaf3db',
-                    balance: '86.827833096425857765',
+                    balance: '379.281497852017471966',
                     decimals: 18,
                     symbol: 'DAI',
                     denormWeight: '15',
@@ -243,7 +243,7 @@ const getPools = async () => {
                     id:
                         '0x1d68f84c4b26c741466c91284237006604cfc076-0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
                     address: '0x04dac410a1838c20719783cdfe8f88fdfddf4d32',
-                    balance: '0.295719574933009772',
+                    balance: '0.988202106300572507',
                     decimals: 18,
                     symbol: 'MOAR',
                     denormWeight: '15',
@@ -252,7 +252,7 @@ const getPools = async () => {
                 },
             ],
             swaps: [],
-            poolLiquidity: 172.63,
+            poolLiquidity: 714.52,
         },
         {
             id: '0x3ce4e9eb7f4281351001cf5a8e8ddee2cf4a10f1',
@@ -276,13 +276,13 @@ const getPools = async () => {
                 '0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
                 '0x44b695e96fbdba3212a55db67b0c2d23baeb2cdb',
             ],
-            swapsCount: '0',
+            swapsCount: '1',
             tokens: [
                 {
                     id:
                         '0x3ce4e9eb7f4281351001cf5a8e8ddee2cf4a10f1-0x44b695e96fbdba3212a55db67b0c2d23baeb2cdb',
                     address: '0x44b695e96fbdba3212a55db67b0c2d23baeb2cdb',
-                    balance: '1.2',
+                    balance: '1.172327485598576104',
                     decimals: 18,
                     symbol: 'SUBS',
                     denormWeight: '17.855',
@@ -293,7 +293,7 @@ const getPools = async () => {
                     id:
                         '0x3ce4e9eb7f4281351001cf5a8e8ddee2cf4a10f1-0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
                     address: '0xfaf3da4041d98eead0d7b89582e451a33aa68f81',
-                    balance: '0.89193',
+                    balance: '0.918362218719977997',
                     decimals: 18,
                     symbol: 'MFER',
                     denormWeight: '14.285',

@@ -8,6 +8,7 @@ import {
     Swap,
     DisabledOptions,
     NewPath,
+    PoolPairBase,
 } from './types';
 import {
     BONE,
@@ -23,10 +24,15 @@ import {
 import disabledTokensDefault from './disabled-tokens.json';
 
 export function getLimitAmountSwap(
-    poolPairData: PoolPairData,
+    poolPairData: PoolPairBase,
     swapType: string
 ): BigNumber {
     if (swapType === 'swapExactIn') {
+        if (poolPairData.decimalsIn < 18) {
+            return bnum(poolPairData.balanceIn).times(
+                bnum(10).pow(18 - poolPairData.decimalsIn)
+            );
+        }
         return bmul(poolPairData.balanceIn, MAX_IN_RATIO);
     } else {
         return bmul(poolPairData.balanceOut, MAX_OUT_RATIO);
@@ -73,14 +79,14 @@ export function getLimitAmountSwapPath(
 
                 tmpLimitAmount = BigNumber.min(
                     tmpLimitAmount,
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType),
-                    bmul(
-                        getLimitAmountSwap(
-                            poolPairDataSwap.poolPairData,
-                            swapType
-                        ),
-                        prePoolPairData.sp
-                    ) // we need to multiply the limit_IN of
+                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
+                    // bmul(
+                    //     getLimitAmountSwap(
+                    //         poolPairDataSwap.poolPairData,
+                    //         swapType
+                    //     ),
+                    //     prePoolPairData.sp
+                    // ) // we need to multiply the limit_IN of
                 );
 
                 if (index === newSwaps.length - 1) {
@@ -94,10 +100,13 @@ export function getLimitAmountSwapPath(
                     //         prePoolPairData.sp
                     //     ) // we need to multiply the limit_IN of
                     // );
-                    tmpLimitAmount = getLimitAmountSwap(
-                        poolPairDataSwap.poolPairData,
-                        swapType
-                    );
+                    // tmpLimitAmount = bmul(
+                    //     getLimitAmountSwap(
+                    //         poolPairDataSwap.poolPairData,
+                    //         swapType
+                    //     ),
+                    //     prePoolPairData.sp
+                    // )
                 }
             }
         });
