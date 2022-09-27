@@ -70,11 +70,16 @@ function processPaths(paths, pools, swapType) {
             swapType,
             poolPairData
         );
-        path.limitAmount = helpers_1.getLimitAmountSwapPath(
-            pools,
-            path,
-            swapType,
-            poolPairData
+        // path.limitAmount = getLimitAmountSwapPath(
+        //     pools,
+        //     path,
+        //     swapType,
+        //     poolPairData
+        // );
+        path.limitAmount = new bignumber_1.BigNumber(
+            helpers_1
+                .getNewLimitAmountSwapForPath(poolPairData, swapType)
+                .toString()
         );
     });
     let sortedPaths = paths

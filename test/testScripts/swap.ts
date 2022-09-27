@@ -315,7 +315,7 @@ let sor;
 // const assetInAddress = '0x0457Ad7b48d98E3CD463B9F9d14EfED56332268D';
 // const assetOutAddress = '0xde4539989309d3c59C10A4cF8CE307BC1bacD287';
 
-const assetInAddress = '0xd23BBE4386e2a738085990Bad5773CC16561b910'; // WETH
+const assetInAddress = '0x3C666c26Baf19DE73F9BACD1453894602D55a162'; // WETH
 // const assetOutAddress = '0x40dcb20b6b0d528d1206899f467d0f0339c7889d';  // MBMU
 const assetOutAddress = '0x44b695e96fbdba3212a55db67b0c2d23baeb2cdb'; // MOAR
 //
@@ -354,7 +354,7 @@ const onInAmountChange = async () => {
         console.log('sor=======');
     }
 
-    const assetInAmount = new BigNumber(100000000000000000); // scal
+    const assetInAmount = new BigNumber(5000000); // scal
     console.log('assetInAmount', assetInAmount);
 
     console.time(`[SOR] getSwaps ${assetInAddress} ${assetOutAddress} exactIn`);

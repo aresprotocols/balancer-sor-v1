@@ -7,10 +7,36 @@ import {
     DisabledOptions,
     PoolPairBase,
 } from './types';
+import { BigNumber as OldBigNumber } from '@ethersproject/bignumber';
 export declare function getLimitAmountSwap(
     poolPairData: PoolPairBase,
     swapType: string
 ): BigNumber;
+export declare function getNewLimitAmountSwap(
+    poolPairData: any,
+    swapType: string
+): BigNumber;
+export declare function getNewLimitAmountSwapForPath(
+    newPoolPairData: any,
+    swapType: string
+): OldBigNumber;
+export declare function getOutputAmountSwap(
+    poolPairData: PoolPairBase,
+    swapType: string,
+    amount: BigNumber
+): BigNumber;
+export declare function calcNewInGivenOut(
+    balanceIn: bigint,
+    weightIn: bigint,
+    balanceOut: bigint,
+    weightOut: bigint,
+    amountOut: bigint,
+    fee: bigint
+): bigint;
+export declare function takeToPrecision18(
+    amount: OldBigNumber,
+    decimals: number
+): OldBigNumber;
 export declare function getLimitAmountSwapPath(
     pools: PoolDictionary,
     path: Path,

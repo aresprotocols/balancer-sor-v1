@@ -5,26 +5,330 @@ var __importDefault =
         return mod && mod.__esModule ? mod : { default: mod };
     };
 Object.defineProperty(exports, '__esModule', { value: true });
-exports.getMarketSpotPrice = exports.sortPoolsMostLiquid = exports.filterPools = exports.formatSubgraphPools = exports.parsePoolPairData = exports.parsePoolData = exports.getNormalizedLiquidity = exports.updateTokenBalanceForPool = exports.getReturnAmountSwap = exports.getReturnAmountSwapPath = exports.getSlippageLinearizedSpotPriceAfterSwap = exports.getSlippageLinearizedSpotPriceAfterSwapPath = exports.getSpotPrice = exports.getSpotPricePath = exports.getLimitAmountSwapPath = exports.getLimitAmountSwap = void 0;
+exports.getMarketSpotPrice = exports.sortPoolsMostLiquid = exports.filterPools = exports.formatSubgraphPools = exports.parsePoolPairData = exports.parsePoolData = exports.getNormalizedLiquidity = exports.updateTokenBalanceForPool = exports.getReturnAmountSwap = exports.getReturnAmountSwapPath = exports.getSlippageLinearizedSpotPriceAfterSwap = exports.getSlippageLinearizedSpotPriceAfterSwapPath = exports.getSpotPrice = exports.getSpotPricePath = exports.getLimitAmountSwapPath = exports.takeToPrecision18 = exports.calcNewInGivenOut = exports.getOutputAmountSwap = exports.getNewLimitAmountSwapForPath = exports.getNewLimitAmountSwap = exports.getLimitAmountSwap = void 0;
 const bignumber_1 = require('./utils/bignumber');
 const address_1 = require('@ethersproject/address');
 const bmath_1 = require('./bmath');
 const disabled_tokens_json_1 = __importDefault(
     require('./disabled-tokens.json')
 );
+const constants_1 = require('@ethersproject/constants');
+const bignumber_2 = require('@ethersproject/bignumber');
+const basicOperations_1 = require('./utils/basicOperations');
 function getLimitAmountSwap(poolPairData, swapType) {
     if (swapType === 'swapExactIn') {
-        if (poolPairData.decimalsIn < 18) {
-            return bmath_1
-                .bnum(poolPairData.balanceIn)
-                .times(bmath_1.bnum(10).pow(18 - poolPairData.decimalsIn));
-        }
         return bmath_1.bmul(poolPairData.balanceIn, bmath_1.MAX_IN_RATIO);
     } else {
         return bmath_1.bmul(poolPairData.balanceOut, bmath_1.MAX_OUT_RATIO);
     }
 }
 exports.getLimitAmountSwap = getLimitAmountSwap;
+function getNewLimitAmountSwap(poolPairData, swapType) {
+    console.log(
+        'get new limit amount:',
+        JSON.stringify(poolPairData),
+        swapType
+    );
+    if (swapType === 'swapExactIn') {
+        return bmath_1.bnum(
+            bignumber_2.formatFixed(
+                bignumber_2.BigNumber.from(
+                    new bignumber_1.BigNumber(poolPairData.balanceIn).toString()
+                )
+                    .mul(
+                        bignumber_2.BigNumber.from(
+                            bmath_1.MAX_IN_RATIO.toString()
+                        )
+                    )
+                    .div(constants_1.WeiPerEther),
+                poolPairData.decimalsIn
+            )
+        );
+    } else {
+        return bmath_1.bnum(
+            bignumber_2.formatFixed(
+                bignumber_2.BigNumber.from(
+                    new bignumber_1.BigNumber(
+                        poolPairData.balanceOut
+                    ).toString()
+                )
+                    .mul(
+                        bignumber_2.BigNumber.from(
+                            bmath_1.MAX_OUT_RATIO.toString()
+                        )
+                    )
+                    .div(constants_1.WeiPerEther),
+                poolPairData.decimalsOut
+            )
+        );
+    }
+}
+exports.getNewLimitAmountSwap = getNewLimitAmountSwap;
+function getNewLimitAmountSwapForPath(newPoolPairData, swapType) {
+    const poolPairData = [];
+    Object.keys(newPoolPairData).forEach(key => {
+        poolPairData.push(newPoolPairData[key].poolPairData);
+    });
+    console.log('new swap path:', JSON.stringify(poolPairData), swapType);
+    let limit;
+    if (swapType === 'swapExactIn') {
+        limit = getNewLimitAmountSwap(
+            poolPairData[poolPairData.length - 1],
+            'swapExactIn'
+        );
+        console.log('先获取 swap in', limit.toString());
+        for (let i = poolPairData.length - 2; i >= 0; i--) {
+            const poolLimitExactIn = getNewLimitAmountSwap(
+                poolPairData[i],
+                'swapExactIn'
+            );
+            const poolLimitExactOut = getNewLimitAmountSwap(
+                poolPairData[i],
+                'swapExactOut'
+            );
+            console.log('poolLimitExactIn0==', limit.toString());
+            console.log('poolLimitExactIn1==', poolLimitExactIn.toString());
+            console.log('poolLimitExactIn2==', poolLimitExactOut.toString());
+            console.log('poolLimitExactIn3==', poolLimitExactOut.lte(limit));
+            if (poolLimitExactOut.lte(limit)) {
+                limit = poolLimitExactIn;
+            } else {
+                const pulledLimit = getOutputAmountSwap(
+                    poolPairData[i],
+                    'swapExactOut',
+                    limit
+                );
+                console.log('pulledLimit==', pulledLimit.toString());
+                limit = bignumber_1.BigNumber.min(
+                    pulledLimit,
+                    poolLimitExactIn
+                );
+            }
+        }
+        console.log('最后的结果==', limit.toString());
+        if (limit.isZero()) return constants_1.Zero;
+        const result = bignumber_2.parseFixed(
+            limit.dp(poolPairData[0].decimalsIn).toString(),
+            poolPairData[0].decimalsIn
+        );
+        console.log('最后的结果', result.toString());
+        return result;
+    } else {
+        limit = getNewLimitAmountSwap(poolPairData[0], 'swapExactOut');
+        for (let i = 1; i < poolPairData.length; i++) {
+            const poolLimitExactIn = getNewLimitAmountSwap(
+                poolPairData[i],
+                'swapExactIn'
+            );
+            const poolLimitExactOut = getNewLimitAmountSwap(
+                poolPairData[i],
+                'swapExactOut'
+            );
+            if (poolLimitExactIn.lte(limit)) {
+                limit = poolLimitExactOut;
+            } else {
+                const pushedLimit = getOutputAmountSwap(
+                    poolPairData[i],
+                    'swapExactIn',
+                    limit
+                );
+                limit = bignumber_1.BigNumber.min(
+                    pushedLimit,
+                    poolLimitExactOut
+                );
+            }
+        }
+        if (limit.isZero()) return constants_1.Zero;
+        return bignumber_2.parseFixed(
+            limit
+                .dp(poolPairData[poolPairData.length - 1].decimalsOut)
+                .toString(),
+            poolPairData[poolPairData.length - 1].decimalsOut
+        );
+    }
+}
+exports.getNewLimitAmountSwapForPath = getNewLimitAmountSwapForPath;
+function getOutputAmountSwap(poolPairData, swapType, amount) {
+    // TODO: check if necessary to check if amount > limitAmount
+    console.log(
+        'output swapExactIn:',
+        poolPairData,
+        swapType,
+        poolPairData.balanceIn.isZero()
+    );
+    if (swapType === 'swapExactIn') {
+        if (poolPairData.balanceIn.isZero()) {
+            return bignumber_1.ZERO;
+        } else {
+            return exactTokenInForTokenOut(poolPairData, amount);
+        }
+    } else {
+        if (poolPairData.balanceOut.isZero()) {
+            return bignumber_1.ZERO;
+        } else if (
+            bmath_1
+                .scale(amount, poolPairData.decimalsOut)
+                .gte(poolPairData.balanceOut.toString())
+        ) {
+            return bignumber_1.INFINITY;
+        } else {
+            return tokenInForExactTokenOut(poolPairData, amount);
+        }
+    }
+    throw Error('Unsupported swap');
+}
+exports.getOutputAmountSwap = getOutputAmountSwap;
+// Using BigNumber.js decimalPlaces (dp), allows us to consider token decimal accuracy correctly,
+// i.e. when using token with 2decimals 0.002 should be returned as 0
+// Uses ROUND_UP mode (0)
+// calcInGivenOut
+function tokenInForExactTokenOut(poolPairData, amount) {
+    console.log(
+        'ccccc',
+        poolPairData.balanceIn.toString(),
+        poolPairData.balanceOut.toString(),
+        amount.toString()
+    );
+    if (amount.isNaN()) return amount;
+    const balanceIn = poolPairData.balanceIn;
+    const balanceOut = poolPairData.balanceOut;
+    const decimalsIn = poolPairData.decimalsIn;
+    const decimalsOut = poolPairData.decimalsOut;
+    try {
+        const amt = calcNewInGivenOut(
+            takeToPrecision18(
+                bignumber_2.BigNumber.from(balanceIn.toString()),
+                decimalsIn
+            ).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.weightIn.toString()
+            ).toBigInt(),
+            takeToPrecision18(
+                bignumber_2.BigNumber.from(balanceOut.toString()),
+                decimalsOut
+            ).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.weightOut.toString()
+            ).toBigInt(),
+            bignumber_2.parseFixed(amount.dp(18, 1).toString(), 18).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.swapFee.toString()
+            ).toBigInt()
+        );
+        console.log('amt==', amt.toString());
+        // return human scaled
+        const amtOldBn = bmath_1.bnum(amt.toString());
+        return bmath_1.scale(amtOldBn, -18);
+    } catch (err) {
+        console.log('dddd===', err);
+        return bignumber_1.ZERO;
+    }
+}
+// PairType = 'token->token'
+// SwapType = 'swapExactOut'
+function calcNewInGivenOut(
+    balanceIn,
+    weightIn,
+    balanceOut,
+    weightOut,
+    amountOut,
+    fee
+) {
+    const base = basicOperations_1.MathSol.divUpFixed(
+        balanceOut,
+        balanceOut - amountOut
+    );
+    const exponent = basicOperations_1.MathSol.divUpFixed(weightOut, weightIn);
+    const power = basicOperations_1.MathSol.powUpFixed(base, exponent);
+    const ratio = basicOperations_1.MathSol.sub(
+        power,
+        basicOperations_1.MathSol.ONE
+    );
+    const amountIn = basicOperations_1.MathSol.mulUpFixed(balanceIn, ratio);
+    return addFee(amountIn, fee);
+}
+exports.calcNewInGivenOut = calcNewInGivenOut;
+function addFee(amount, fee) {
+    return basicOperations_1.MathSol.divUpFixed(
+        amount,
+        basicOperations_1.MathSol.complementFixed(fee)
+    );
+}
+function exactTokenInForTokenOut(poolPairData, amount) {
+    console.log('exactTokenInForTokenOut==', amount.toString());
+    if (amount.isNaN()) return amount;
+    const balanceIn = poolPairData.balanceIn;
+    const balanceOut = poolPairData.balanceOut;
+    const decimalsIn = poolPairData.decimalsIn;
+    const decimalsOut = poolPairData.decimalsOut;
+    try {
+        const amt = calcNewOutGivenIn(
+            takeToPrecision18(
+                bignumber_2.BigNumber.from(balanceIn.toString()),
+                decimalsIn
+            ).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.weightIn.toString()
+            ).toBigInt(),
+            takeToPrecision18(
+                bignumber_2.BigNumber.from(balanceOut.toString()),
+                decimalsOut
+            ).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.weightOut.toString()
+            ).toBigInt(),
+            bignumber_2.parseFixed(amount.dp(18, 1).toString(), 18).toBigInt(),
+            bignumber_2.BigNumber.from(
+                poolPairData.swapFee.toString()
+            ).toBigInt()
+        );
+        console.log('amt', amt);
+        // return human scaled
+        const amtOldBn = bmath_1.bnum(amt.toString());
+        return bmath_1.scale(amtOldBn, -18);
+    } catch (err) {
+        console.log('exac token in:', err);
+        return bignumber_1.ZERO;
+    }
+}
+// The following function are BigInt versions implemented by Sergio.
+// BigInt was requested from integrators as it is more efficient.
+// Swap outcomes formulas should match exactly those from smart contracts.
+// PairType = 'token->token'
+// SwapType = 'swapExactIn'
+function calcNewOutGivenIn(
+    balanceIn,
+    weightIn,
+    balanceOut,
+    weightOut,
+    amountIn,
+    fee
+) {
+    // is it necessary to check ranges of variables? same for the other functions
+    amountIn = subtractFee(amountIn, fee);
+    const exponent = basicOperations_1.MathSol.divDownFixed(
+        weightIn,
+        weightOut
+    );
+    const denominator = basicOperations_1.MathSol.add(balanceIn, amountIn);
+    const base = basicOperations_1.MathSol.divUpFixed(balanceIn, denominator);
+    const power = basicOperations_1.MathSol.powUpFixed(base, exponent);
+    return basicOperations_1.MathSol.mulDownFixed(
+        balanceOut,
+        basicOperations_1.MathSol.complementFixed(power)
+    );
+}
+function subtractFee(amount, fee) {
+    const feeAmount = basicOperations_1.MathSol.mulUpFixed(amount, fee);
+    return amount - feeAmount;
+}
+function takeToPrecision18(amount, decimals) {
+    for (let i = 0; i < 18 - decimals; i++) {
+        amount = amount.mul(10);
+    }
+    return amount;
+}
+exports.takeToPrecision18 = takeToPrecision18;
 function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
     let swaps = path.swaps;
     if (swaps.length == 1) {
@@ -58,27 +362,14 @@ function getLimitAmountSwapPath(pools, path, swapType, poolPairData) {
                 prePoolPairData = poolPairData[preId];
                 tmpLimitAmount = bignumber_1.BigNumber.min(
                     tmpLimitAmount,
-                    getLimitAmountSwap(poolPairDataSwap.poolPairData, swapType)
+                    bmath_1.bmul(
+                        getLimitAmountSwap(
+                            poolPairDataSwap.poolPairData,
+                            swapType
+                        ),
+                        prePoolPairData.sp
+                    ) // we need to multiply the limit_IN of
                 );
-                if (index === newSwaps.length - 1) {
-                    // tmpLimitAmount = BigNumber.min(
-                    //     tmpLimitAmount,
-                    //     bmul(
-                    //         getLimitAmountSwap(
-                    //             poolPairDataSwap.poolPairData,
-                    //             swapType
-                    //         ),
-                    //         prePoolPairData.sp
-                    //     ) // we need to multiply the limit_IN of
-                    // );
-                    // tmpLimitAmount = bmul(
-                    //     getLimitAmountSwap(
-                    //         poolPairDataSwap.poolPairData,
-                    //         swapType
-                    //     ),
-                    //     prePoolPairData.sp
-                    // )
-                }
             }
         });
         return tmpLimitAmount;

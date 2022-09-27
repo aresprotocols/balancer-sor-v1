@@ -6,6 +6,7 @@ import {
     getReturnAmountSwap,
     getReturnAmountSwapPath,
     parsePoolPairData,
+    getNewLimitAmountSwapForPath,
 } from './helpers';
 import { bmul, bdiv, bnum, BONE } from './bmath';
 import { BigNumber } from './utils/bignumber';
@@ -97,11 +98,14 @@ export function processPaths(
             swapType,
             poolPairData
         );
-        path.limitAmount = getLimitAmountSwapPath(
-            pools,
-            path,
-            swapType,
-            poolPairData
+        // path.limitAmount = getLimitAmountSwapPath(
+        //     pools,
+        //     path,
+        //     swapType,
+        //     poolPairData
+        // );
+        path.limitAmount = new BigNumber(
+            getNewLimitAmountSwapForPath(poolPairData, swapType).toString()
         );
     });
 
